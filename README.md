@@ -1,6 +1,6 @@
-# Cockpit Starter Kit
+# easyHPC
 
-Scaffolding for a [Cockpit](https://cockpit-project.org/) module.
+A Web GUI plugin for HPC management and resources management with Cockpit.  
 
 # Development dependencies
 
@@ -18,7 +18,7 @@ On Fedora:
 These commands check out the source and build it into the `dist/` directory:
 
 ```
-git clone https://github.com/cockpit-project/starter-kit.git
+git clone https://github.com/lingweicai/easyhpc.git
 cd starter-kit
 make
 ```
@@ -39,7 +39,7 @@ this manually:
 
 ```
 mkdir -p ~/.local/share/cockpit
-ln -s `pwd`/dist ~/.local/share/cockpit/starter-kit
+ln -s `pwd`/dist ~/.local/share/cockpit/easyhpc
 ```
 
 After changing the code and running `make` again, reload the Cockpit page in
@@ -159,8 +159,8 @@ After cloning the Starter Kit you should rename the files, package names, and
 labels to your own project's name. Use these commands to find out what to
 change:
 
-    find -iname '*starter*'
-    git grep -i starter
+    find -iname '*easyhpc*'
+    git grep -i easyhpc
 
 # Automated release
 
