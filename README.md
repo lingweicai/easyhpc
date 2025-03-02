@@ -194,7 +194,6 @@ see [configuration file](.github/dependabot.yml).
 
 # Further reading
 
- * The [Starter Kit announcement](https://cockpit-project.org/blog/cockpit-starter-kit.html)
+ * The [About 易超算（北京）科技有限责任公司 www.easyhpc.cn (in Chinese)](https://www.easyhpc.cn/)
    blog post explains the rationale for this project.
  * [Cockpit Deployment and Developer documentation](https://cockpit-project.org/guide/latest/)
- * [Make your project easily discoverable](https://cockpit-project.org/blog/making-a-cockpit-application.html)
