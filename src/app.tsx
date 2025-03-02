@@ -20,6 +20,7 @@
 import React, { useEffect, useState } from 'react';
 import { Alert } from "@patternfly/react-core/dist/esm/components/Alert/index.js";
 import { Card, CardBody, CardTitle } from "@patternfly/react-core/dist/esm/components/Card/index.js";
+import { TableActions } from './app_table';
 
 import cockpit from 'cockpit';
 
@@ -35,6 +36,7 @@ export const Application = () => {
     }, []);
 
     return (
+        <>
         <Card>
             <CardTitle>Starter Kit</CardTitle>
             <CardBody>
@@ -44,5 +46,13 @@ export const Application = () => {
                 />
             </CardBody>
         </Card>
+        <Card>
+            <CardTitle>easyHPC</CardTitle>
+            <CardBody>
+                easyhpc LWC lwc lwclwc eeee
+            <TableActions />
+            </CardBody>
+        </Card>
+        </>
     );
 };
