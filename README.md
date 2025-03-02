@@ -194,6 +194,6 @@ see [configuration file](.github/dependabot.yml).
 
 # Further reading
 
- * The [About 易超算（北京）科技有限责任公司 www.easyhpc.cn (in Chinese)](https://www.easyhpc.cn/)
+ * The [About easyHPC.cn 易超算（北京）科技有限责任公司 (in Chinese)](https://www.easyhpc.cn/index.html)
    blog post explains the rationale for this project.
  * [Cockpit Deployment and Developer documentation](https://cockpit-project.org/guide/latest/)
