@@ -20,9 +20,10 @@
 import React, { useEffect, useState } from 'react';
 import { Alert } from "@patternfly/react-core/dist/esm/components/Alert/index.js";
 import { Card, CardBody, CardTitle } from "@patternfly/react-core/dist/esm/components/Card/index.js";
-import { TableActions } from './app_table';
-
 import cockpit from 'cockpit';
+import ClusterSummary from './ClusterSummary';
+import JobHistoryChart from './JobHistoryChart';
+import ResourceUsageChart from './ResourceUsageChart';
 
 const _ = cockpit.gettext;
 
@@ -46,13 +47,11 @@ export const Application = () => {
                 />
             </CardBody>
         </Card>
-        <Card>
-            <CardTitle>easyHPC</CardTitle>
-            <CardBody>
-                easyhpc LWC lwc lwclwc eeee
-            <TableActions />
-            </CardBody>
-        </Card>
+            {/* <ClusterDashboard /> */}
+            {/* <SlurmQueueMonitor /> */}
+            <ClusterSummary />
+            <JobHistoryChart />
+            <ResourceUsageChart />
         </>
     );
 };
