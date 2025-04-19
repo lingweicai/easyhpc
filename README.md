@@ -70,7 +70,7 @@ set to upload code changes to `~/.local/share/cockpit/` instead of
 To "uninstall" the locally installed version, run `make devel-uninstall`, or
 remove manually the symlink:
 
-    rm ~/.local/share/cockpit/starter-kit
+    rm ~/.local/share/cockpit/easyhpc
 
 # Running eslint
 
@@ -152,15 +152,6 @@ tests are wrapped in the [FMF metadata format](https://github.com/teemtee/fmf)
 for using with the [tmt test management tool](https://docs.fedoraproject.org/en-US/ci/tmt/).
 Note that Packit tests can *not* run their own virtual machine images, thus
 they only run [@nondestructive tests](https://github.com/cockpit-project/cockpit/blob/main/test/common/testlib.py).
-
-# Customizing
-
-After cloning the Starter Kit you should rename the files, package names, and
-labels to your own project's name. Use these commands to find out what to
-change:
-
-    find -iname '*starter*'
-    git grep -i starter
 
 # Automated release
 
