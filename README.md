@@ -1,6 +1,6 @@
-# Cockpit Starter Kit
+# HPC Web UI
 
-Scaffolding for a [Cockpit](https://cockpit-project.org/) module.
+A Web UI of High Performance Cluster configured with OpenHPC/Warewulf/Slurm.
 
 # Development dependencies
 
@@ -18,8 +18,8 @@ On Fedora:
 These commands check out the source and build it into the `dist/` directory:
 
 ```
-git clone https://github.com/cockpit-project/starter-kit.git
-cd starter-kit
+git clone https://github.com/lingweicai/easyhpc
+cd easyhpc
 make
 ```
 
@@ -194,7 +194,4 @@ see [configuration file](.github/dependabot.yml).
 
 # Further reading
 
- * The [Starter Kit announcement](https://cockpit-project.org/blog/cockpit-starter-kit.html)
-   blog post explains the rationale for this project.
- * [Cockpit Deployment and Developer documentation](https://cockpit-project.org/guide/latest/)
- * [Make your project easily discoverable](https://cockpit-project.org/blog/making-a-cockpit-application.html)
+ * www.easyhpc.cn
