@@ -194,4 +194,4 @@ see [configuration file](.github/dependabot.yml).
 
 # Further reading
 
- * www.easyhpc.cn
+ * easyhpc.cn
