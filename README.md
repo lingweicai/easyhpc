@@ -39,7 +39,7 @@ this manually:
 
 ```
 mkdir -p ~/.local/share/cockpit
-ln -s `pwd`/dist ~/.local/share/cockpit/starter-kit
+ln -s `pwd`/dist ~/.local/share/cockpit/easyhpc
 ```
 
 After changing the code and running `make` again, reload the Cockpit page in
