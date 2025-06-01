@@ -1,0 +1,605 @@
+# Translators:
+# lingweicai  <forrest.ling@easyhpc.cn>, 2025
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-25 03:12+0000\n"
+"PO-Revision-Date: 2025-04-03 00:08+0000\n"
+"Last-Translator: z z <3397542367@qq.com>\n"
+"Language-Team: Chinese (Simplified) <https://translate.fedoraproject.org/"
+"projects/cockpit/main/zh_CN/>\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0\n"
+"X-Generator: Weblate 5.10.4\n"
+
+#: src/manifest.json:8
+msgid "HPC Management"
+msgstr "HPC 资源管理"
+
+#: src/Dashbar.jsx:54
+msgid "Partitions"
+msgstr "分区"
+
+#: src/Dashbar.jsx:55
+msgid "Nodes"
+msgstr "节点"
+
+#: src/Dashbar.jsx:56
+msgid "Jobs"
+msgstr "作业"
+
+#: src/Dashbar.jsx:57
+msgid "User"
+msgstr "用户"
+
+#: src/Dashbar.jsx:57
+msgid "Report"
+msgstr "报表"
+
+#: src/Dashbar.jsx:57
+msgid "Account"
+msgstr "账户"
+
+#: src/Dashbar.jsx:100
+msgid "Summary"
+msgstr "概览"
+
+#: src/Dashbar.jsx:123
+msgid "Home Storage"
+msgstr "home目录存储"
+
+#: src/Dashbar.jsx:126
+msgid "Charts"
+msgstr "图表"
+
+#: src/Dashbar.jsx:129
+msgid "Today Jobs"
+msgstr "当日作业"
+
+#: src/board/SinfoCard.tsx:17
+msgid "Sinfo"
+msgstr "分区节点信息"
+
+#: src/board/SqueueCard.tsx:17
+msgid "Squeue"
+msgstr "作业队列"
+
+#: src/board/SinfoTable.tsx:49
+msgid "PARTITION"
+msgstr "分区"
+
+#: src/board/SinfoTable.tsx:50
+msgid "AVAIL"
+msgstr "可用"
+
+#: src/board/SinfoTable.tsx:51
+msgid "TIMELIMIT"
+msgstr "时限"
+
+#: src/board/SinfoTable.tsx:52
+msgid "NODES"
+msgstr "节点数"
+
+#: src/board/SinfoTable.tsx:53
+msgid "STATE"
+msgstr "状态"
+
+#: src/board/SinfoTable.tsx:54
+msgid "NODELIST"
+msgstr "节点列表"
+
+#: src/board/SqueueTable.tsx:146
+msgid "JOBID"
+msgstr "作业号"
+
+#: src/board/SqueueTable.tsx:148
+msgid "NAME"
+msgstr "名字"
+
+#: src/board/SqueueTable.tsx:149
+msgid "USER"
+msgstr "用户"
+
+#: src/board/SqueueTable.tsx:150
+msgid "ST"
+msgstr "状态"
+
+#: src/board/SqueueTable.tsx:151
+msgid "TIME"
+msgstr "时间"
+
+#: src/board/SqueueTable.tsx:154
+msgid "ACTIONS"
+msgstr "操作" 
+
+#: src/execute/ExecutePannle.tsx:14
+msgid "Running"
+msgstr "运行" 
+
+
+#: src/execute/SallocLauncher.tsx:93
+msgid "salloc"
+msgstr "申请交互(salloc)"
+
+#: src/execute/SallocLauncher.tsx:126
+msgid "Job ID"
+msgstr "作业号"
+
+#: src/execute/SallocLauncher.tsx:127
+msgid "State"
+msgstr "状态"
+
+#: src/execute/SallocLauncher.tsx:128
+msgid "BatchHost"
+msgstr "批处理节点"
+
+#: src/execute/SallocLauncher.tsx:129
+msgid "Node List"
+msgstr "节点列表"
+
+#: src/execute/SunLauncher.tsx:140
+msgid "srun"
+msgstr "执行命令运行（srun）"
+
+#: src/execute/SunLauncher.tsx:144
+msgid "Launch SLURM Job"
+msgstr "启动 Slurm 作业"
+
+#: src/execute/SunLauncher.tsx:184
+msgid "Selected"
+msgstr "选择的"
+
+#: src/execute/SbatchLauncher.tsx:
+msgid "sbatch"
+msgstr "批处理（sbatch）"
+
+#: src/execute/SbatchLauncher.tsx:
+msgid "Select and Submit Job Script"
+msgstr "选择和提交Job Script 脚本"
+
+#: src/execute/SbatchLauncher.tsx:
+msgid "Submission Output"
+msgstr "提交输出"
+
+#: src/execute/SbatchLauncher.tsx:
+msgid "Selected Script"
+msgstr "选择脚本"
+
+#: src/execute/SbatchLauncher.tsx:
+msgid "Select a Script File"
+msgstr "选择脚本文件"
+
+#: src/bar/PartitionsChart.tsx:75
+msgid "Total Nodes"
+msgstr "节点总数"
+
+#: src/bar/PartitionsChart.tsx:85
+msgid "Total CPUs"
+msgstr "CPU总数"
+
+#: src/bar/PartitionsChart.tsx:97
+msgid "(default)"
+msgstr "默认"
+
+#: src/bar/NodeDonutChart.tsx:49
+msgid "Node state distribution"
+msgstr "节点状态分布"
+
+#: src/bar/NodeDonutChart.tsx:50
+msgid "Slurm node state donut chart"
+msgstr "节点环形图"
+
+#: src/bar/ClusterWorkloadCard.tsx
+msgid "Head Node Workload"
+msgstr "头节点负载"
+
+#: src/bar/ClusterWorkloadCard.tsx:87
+msgid "Failed to load data."
+msgstr "加载数据失败。"
+
+#: src/bar/ClusterWorkloadCard.tsx:93
+msgid "CPU Usage"
+msgstr "CPU 使用"
+
+#: src/bar/ClusterWorkloadCard.tsx:97
+msgid "Memory Usage"
+msgstr "内存使用"
+
+#: src/bar/ClusterWorkloadCard.tsx:101
+msgid "Storage Usage"
+msgstr "存储使用"
+
+#: src/bar/ReportLineChartCard.tsx:60
+msgid "Failed to fetch chart data:"
+msgstr "获取数据失败："
+
+#: src/bar/ReportLineChartCard.tsx:107
+msgid "Utilization Report"
+msgstr "使用报告"
+
+#: src/bar/ReportLineChartCard.tsx:124
+msgid "Utilization over time"
+msgstr "使用时间"
+
+#: src/bar/ReportLineChartCard.tsx:125
+msgid "Utilization Line Chart"
+msgstr "使用线性图表"
+
+#: src/bar/ReportLineChartCard.tsx:134
+msgid "Date"
+msgstr "日期"
+
+#: src/bar/ReportLineChartCard.tsx:137
+msgid "Usage"
+msgstr "使用"
+
+#: src/bar/ReportLineChartCard.tsx:98
+msgid "daily"
+msgstr "每日"
+
+#: src/bar/ReportLineChartCard.tsx:98
+msgid "weekly"
+msgstr "每周"
+
+#: src/bar/ReportLineChartCard.tsx:98
+msgid "monthly"
+msgstr "每月"
+
+#: src/execute/PdshCommandModal.tsx:96
+#: src/execute/PdshCommandModal.tsx:99
+msgid "Run Pdsh Command"
+msgstr "运行pdsh命令"
+
+#: src/execute/PdshCommandModal.tsx:103
+msgid "Select Nodes"
+msgstr "选择节点"
+
+#: src/execute/PdshCommandModal.tsx:110
+msgid "Choose nodes"
+msgstr "选择节点"
+
+#: src/execute/PdshCommandModal.tsx:124
+msgid "Command"
+msgstr "命令"
+
+#: src/execute/PdshCommandModal.tsx:132
+msgid "Command failed"
+msgstr "命令失败"
+
+#: src/execute/PdshCommandModal.tsx:148
+msgid "Run"
+msgstr "运行"
+
+#: src/execute/PdshCommandModal.tsx:152
+msgid "Cancel"
+msgstr "取消"
+
+#: src/execute/SallocLauncher.tsx:72
+msgid "Submit salloc.sh"
+msgstr "提交 salloc.sh"
+
+#: src/execute/SallocLauncher.tsx:75
+msgid "Partition (optional)"
+msgstr "分区（可选的）"
+
+#: src/execute/SallocLauncher.tsx:81
+msgid "Number of Nodes"
+msgstr "节点数"
+
+#: src/execute/SallocLauncher.tsx:89
+msgid "salloc.sh Output"
+msgstr "salloc.sh 输出"
+
+#: src/execute/SallocLauncher.tsx:101
+msgid "Open Terminal"
+msgstr "打开终端"
+
+#: src/execute/SallocLauncher.tsx:107
+msgid "Job was cancelled. No resources allocated."
+msgstr "作业取消。没有资源分配。"
+
+#: src/execute/SallocLauncher.tsx:113
+msgid "Error running salloc.sh"
+msgstr "运行salloc.sh错误。"
+
+#: src/execute/SallocLauncher.tsx:121
+msgid "Submitting..."
+msgstr "提交..."
+
+#: src/execute/SallocLauncher.tsx:121
+msgid "Submit"
+msgstr "提交"
+
+#: src/execute/SallocLauncher.tsx:67
+msgid "Please run: ssh"
+msgstr "请运行：ssh"
+
+#: src/execute/SbatchLauncher.tsx:33
+msgid "Please select a script file first."
+msgstr "请先选择一个脚本文件。"
+
+#: src/execute/SbatchLauncher.tsx:41
+msgid "Submission failed"
+msgstr "提交失败。"
+
+#: src/execute/SbatchLauncher.tsx:69
+msgid "None selected"
+msgstr "没有选择"
+
+#: src/execute/SbatchLauncher.tsx:72
+msgid "Choose or Edit Script File"
+msgstr "选择或者编辑脚本文件"
+
+#: src/execute/SbatchLauncher.tsx:76
+msgid "Upload Script"
+msgstr "上传脚本"
+
+#: src/execute/SbatchLauncher.tsx:86
+msgid "Close"
+msgstr "关闭"
+
+#: src/execute/SbatchLauncher.tsx:102
+msgid "Upload Slurm Script"
+msgstr "上传Slurm脚本"
+
+#: src/execute/SbatchSelectFiles.tsx:100
+msgid "Select a script file"
+msgstr "选择一个脚本文件"
+
+#: src/execute/SbatchSelectFiles.tsx:108
+msgid "Script Files Table"
+msgstr "脚本文件表格"
+
+#: src/execute/SbatchSelectFiles.tsx:111
+msgid "Select"
+msgstr "选择"
+
+#: src/execute/SbatchSelectFiles.tsx:112
+msgid "File Name"
+msgstr "文件名"
+
+#: src/execute/SbatchSelectFiles.tsx:113
+msgid "Size"
+msgstr "大小"
+
+#: src/execute/SbatchSelectFiles.tsx:123
+msgid "View"
+msgstr "视图"
+
+#: src/execute/SbatchSelectFiles.tsx:131
+msgid "Selected:"
+msgstr "选择的"
+
+#: src/execute/SbatchSelectFiles.tsx:139
+msgid "View File"
+msgstr "查看文件"
+
+#: src/execute/SbatchSelectFiles.tsx:147
+msgid "Save As"
+msgstr "另存为"
+
+#: src/execute/SbatchSelectFiles.tsx:151
+msgid "Leave blank to overwrite"
+msgstr "空白就会覆盖"
+
+#: src/execute/SbatchSelectFiles.tsx:157
+msgid "Save"
+msgstr "存储"
+
+#: src/execute/SbatchSelectFiles.tsx:163
+msgid "Edit"
+msgstr "编辑"
+
+#: src/execute/SbatchSelectFiles.tsx:170
+msgid "Confirm"
+msgstr "确认"
+
+#: src/execute/SbatchUploadFile.tsx:50
+msgid "Please select and edit a script before uploading."
+msgstr "上传之前请选择和编辑一个脚本文件"
+
+#: src/execute/SbatchUploadFile.tsx:67
+msgid "Upload failed: "
+msgstr "上传失败"
+
+#: src/execute/SbatchUploadFile.tsx:71
+msgid "Failed to get user home directory: "
+msgstr "无法获得用户 home 目录"
+
+#: src/execute/SbatchUploadFile.tsx:77
+msgid "Upload Script File"
+msgstr "上传脚本文件"
+
+#: src/execute/SbatchUploadFile.tsx:80
+msgid "Drag and drop or upload a file"
+msgstr "拖拽或者上传"
+
+#: src/execute/SbatchUploadFile.tsx:89
+msgid "Browse"
+msgstr "浏览"
+
+#: src/execute/SbatchUploadFile.tsx:93
+msgid "Upload Error"
+msgstr "上传错误"
+
+#: src/execute/SbatchUploadFile.tsx:100
+msgid "Upload"
+msgstr "上传"
+
+#: src/execute/SrunLauncher.tsx:121
+msgid "Application file (.sh or executable)"
+msgstr "应用文件（.sh 或者可执行文件）"
+
+#: src/execute/SrunLauncher.tsx:128
+msgid "Browse Files"
+msgstr "浏览文件"
+
+#: src/execute/SrunLauncher.tsx:150
+msgid "e.g. 2"
+msgstr "例如 2"
+
+#: src/execute/SrunLauncher.tsx:154
+msgid "Number of processes"
+msgstr "进程数"
+
+#: src/execute/SrunLauncher.tsx:160
+msgid "e.g. 4"
+msgstr "例如 4"
+
+#: src/execute/SrunLauncher.tsx:77
+msgid "Error reading directory:"
+msgstr "读目录错误"
+
+#: src/execute/SrunLauncher.tsx:115
+msgid "srun result:"
+msgstr "srun 结果"
+
+#: src/execute/SrunLauncher.tsx:120
+msgid "srun error:"
+msgstr "srun 错误"
+
+#: src/execute/SrunLauncher.tsx:122
+msgid "Failed to launch job:"
+msgstr "发起作业错误"
+
+
+#: src/bardropmenu/AccountModal.tsx
+msgid "User Account Info"
+msgstr "用户账户信息"
+
+#: src/bardropmenu/AccountModal.tsx
+msgid "User Info Table"
+msgstr "用户信息表"
+
+#: src/bardropmenu/AccountModal.tsx
+msgid "Default Account"
+msgstr "默认账户"
+
+#: src/bardropmenu/JobsModal.tsx:47
+msgid "Failed to fetch jobs:"
+msgstr "获取Job 失败"
+
+#: src/bardropmenu/JobsModal.tsx:60
+msgid "SLURM Jobs"
+msgstr "Slurm 作业"
+
+#: src/bardropmenu/JobsModal.tsx:63
+msgid "SLURM Jobs Table"
+msgstr "Slurm 作业表"
+
+#: src/bardropmenu/JobsModal.tsx:67
+msgid "JobName"
+msgstr "作业名字"
+
+#: src/bardropmenu/JobsModal.tsx:68
+msgid "Partition"
+msgstr "分区"
+
+#: src/bardropmenu/JobsModal.tsx:70
+msgid "AllocCPUS"
+msgstr "分配CPU"
+
+
+#: src/bardropmenu/JobsModal.tsx:72
+msgid "ExitCode"
+msgstr "推出码"
+
+#: src/bardropmenu/NodesModal.tsx:47
+msgid "Failed to fetch nodes:"
+msgstr "无法获取节点："
+
+#: src/bardropmenu/NodesModal.tsx:67
+msgid "Nodes Table"
+msgstr "节点表"
+
+#: src/bardropmenu/NodesModal.tsx:70
+msgid "NodeName"
+msgstr "节点名"
+
+#: src/bardropmenu/NodesModal.tsx:71
+msgid "Arch"
+msgstr "CPU架构"
+
+#: src/bardropmenu/NodesModal.tsx:72
+msgid "CoresPerSocket"
+msgstr "每插槽核心数"
+
+#: src/bardropmenu/NodesModal.tsx:73
+msgid "CPUTot"
+msgstr "总CPU数"
+
+#: src/bardropmenu/NodesModal.tsx:74
+msgid "OS"
+msgstr "操作系统"
+
+#: src/bardropmenu/NodesModal.tsx:75
+msgid "Sockets"
+msgstr "处理器插槽"
+
+#: src/bardropmenu/NodesModal.tsx:76
+msgid "FreeMem"
+msgstr "未用内存"
+
+#: src/bardropmenu/PartitionsModal.tsx:73
+msgid "SLURM Partitions"
+msgstr "SLURM 分区"
+
+#: src/bardropmenu/PartitionsModal.tsx:74
+msgid "Partitions Table"
+msgstr "分区表"
+
+#: src/bardropmenu/PartitionsModal.tsx:77
+msgid "PartitionName"
+msgstr "分区名字"
+
+#: src/bardropmenu/PartitionsModal.tsx:78
+msgid "Default"
+msgstr "默认"
+
+#: src/bardropmenu/PartitionsModal.tsx:79
+msgid "MaxTime"
+msgstr "最大时间"
+
+#: src/bardropmenu/PartitionsModal.tsx:82
+msgid "TotalCPUs"
+msgstr "CPU总数"
+
+#: src/bardropmenu/PartitionsModal.tsx:83
+msgid "TotalNodes"
+msgstr "总节点数"
+
+#: src/bardropmenu/ReportModal.tsx:63
+msgid "Failed to fetch sreport data"
+msgstr "获取报表数据失败"
+
+#: src/bardropmenu/ReportModal.tsx:83
+msgid "Trend range toggle"
+msgstr "趋势范围开关"
+
+#: src/bardropmenu/ReportModal.tsx:89
+msgid "User Usage Trend"
+msgstr "用户使用趋势"
+
+#: src/bardropmenu/ReportModal.tsx:93
+msgid "User usage trend chart"
+msgstr "用户使用趋势图表"
+
+#: src/bardropmenu/ReportModal.tsx:73
+msgid "Daily"
+msgstr "每天"
+
+#: src/bardropmenu/ReportModal.tsx:74
+msgid "Weekly"
+msgstr "每周"
+
+#: src/bardropmenu/ReportModal.tsx:75
+msgid "Monthly"
+msgstr "每月"
+
+#: src/bardropmenu/ReportModal.tsx:77
+msgid "Yearly (Coming Soon)"
+msgstr ""
