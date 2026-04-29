@@ -21,6 +21,10 @@ COCKPIT_REPO_STAMP=pkg/lib/cockpit-po-plugin.js
 # common arguments for tar, mostly to make the generated tarballs reproducible
 TAR_ARGS = --sort=name --mtime "@$(shell git show --no-patch --format='%at')" --mode=go=rX,u+rw,a-s --numeric-owner --owner=0 --group=0
 
+# Go event bridge binary
+GO_BINARY = go/bin/easyhpc-bridge
+GO_SOURCES = $(shell find go/ -name '*.go' 2>/dev/null) go/go.mod
+
 all: $(DIST_TEST)
 
 # checkout common files from Cockpit repository required to build this project;
@@ -85,14 +89,25 @@ $(SPEC): packaging/$(SPEC).in $(DIST_TEST)
 packaging/arch/PKGBUILD: packaging/arch/PKGBUILD.in
 	sed 's/VERSION/$(VERSION)/; s/SOURCE/$(TARFILE)/' $< > $@
 
-$(DIST_TEST): $(NODE_MODULES_TEST) $(COCKPIT_REPO_STAMP) $(shell find src/ -type f) package.json build.js
+# Build the Go event bridge binary
+$(GO_BINARY): $(GO_SOURCES)
+	mkdir -p go/bin
+	cd go && go build -o bin/easyhpc-bridge ./cmd/easyhpc-bridge/
+
+# Run Go tests
+go-test: $(GO_SOURCES)
+	cd go && go test ./...
+
+$(DIST_TEST): $(NODE_MODULES_TEST) $(COCKPIT_REPO_STAMP) $(shell find src/ -type f) package.json build.js $(GO_BINARY)
 	NODE_ENV=$(NODE_ENV) ./build.js
+	cp $(GO_BINARY) dist/easyhpc-bridge
 
 watch: $(NODE_MODULES_TEST) $(COCKPIT_REPO_STAMP)
 	NODE_ENV=$(NODE_ENV) ./build.js --watch
 
 clean:
 	rm -rf dist/
+	rm -rf go/bin/
 	rm -f $(SPEC) packaging/arch/PKGBUILD
 	rm -f po/LINGUAS
 	rm -f metafile.json runtime-npm-modules.txt
@@ -188,6 +203,7 @@ check: prepare-check
 
 codecheck: test/common $(NODE_MODULES_TEST)
 	test/common/static-code
+	cd go && go vet ./...
 
 # checkout Cockpit's bots for standard test VM images and API to launch them
 bots: $(COCKPIT_REPO_STAMP)
@@ -200,4 +216,4 @@ $(NODE_MODULES_TEST): package.json
 	for _ in `seq 3`; do timeout 10m env -u NODE_ENV npm install --ignore-scripts && exit 0; done; exit 1
 	env -u NODE_ENV npm prune
 
-.PHONY: all clean install devel-install devel-uninstall print-version dist node-cache rpm prepare-check check vm print-vm
+.PHONY: all clean install devel-install devel-uninstall print-version dist node-cache rpm prepare-check check vm print-vm go-test
