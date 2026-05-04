@@ -1,0 +1,394 @@
+// SPDX-License-Identifier: LGPL-2.1-or-later
+
+// Package slurm provides utilities for querying Slurm HPC resources and
+// watching the slurmctld log for real-time events.
+package slurm
+
+import (
+	"bufio"
+	"bytes"
+	"os/exec"
+	"strconv"
+	"strings"
+	"sync"
+	"time"
+)
+
+// CacheManager holds a thread-safe snapshot of all Slurm resources.
+type CacheManager struct {
+	mu    sync.RWMutex
+	cache Cache
+}
+
+// NewCache returns an initialised, empty CacheManager.
+func NewCache() *CacheManager {
+	return &CacheManager{
+		cache: Cache{
+			Clusters:     []Cluster{},
+			Partitions:   []Partition{},
+			Nodes:        []Node{},
+			Jobs:         []Job{},
+			JobSteps:     []JobStep{},
+			Reservations: []Reservation{},
+			Users:        []User{},
+			Accounts:     []Account{},
+			SlurmLogs:    []SlurmLog{},
+			Events:       []Event{},
+		},
+	}
+}
+
+// Refresh runs all Slurm commands and updates the cache atomically.
+// It returns the first error encountered but still stores whatever data
+// could be collected.
+func (c *CacheManager) Refresh() error {
+	clusters, errC := getClusters()
+	nodes, errN := getNodes()
+	partitions, errP := getPartitions()
+	jobs, errJ := getJobs()
+	reservations, errR := getReservations()
+	users, errU := getUsers()
+	accounts, errA := getAccounts()
+
+	c.mu.Lock()
+	c.cache.Clusters = clusters
+	c.cache.Nodes = nodes
+	c.cache.Partitions = partitions
+	c.cache.Jobs = jobs
+	c.cache.Reservations = reservations
+	c.cache.Users = users
+	c.cache.Accounts = accounts
+	c.cache.LastUpdated = time.Now()
+	c.mu.Unlock()
+
+	for _, err := range []error{errC, errN, errP, errJ, errR, errU, errA} {
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// Get returns a copy of all cached resources keyed by resource name.
+func (c *CacheManager) Get() map[string]interface{} {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return map[string]interface{}{
+		"clusters":     c.cache.Clusters,
+		"partitions":   c.cache.Partitions,
+		"nodes":        c.cache.Nodes,
+		"jobs":         c.cache.Jobs,
+		"job_steps":    c.cache.JobSteps,
+		"reservations": c.cache.Reservations,
+		"users":        c.cache.Users,
+		"accounts":     c.cache.Accounts,
+		"slurm_logs":   c.cache.SlurmLogs,
+		"events":       c.cache.Events,
+	}
+}
+
+// GetResource returns cached data for a single named resource.
+func (c *CacheManager) GetResource(resource string) interface{} {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	switch resource {
+	case "clusters":
+		return c.cache.Clusters
+	case "partitions":
+		return c.cache.Partitions
+	case "nodes":
+		return c.cache.Nodes
+	case "jobs":
+		return c.cache.Jobs
+	case "job_steps":
+		return c.cache.JobSteps
+	case "reservations":
+		return c.cache.Reservations
+	case "users":
+		return c.cache.Users
+	case "accounts":
+		return c.cache.Accounts
+	case "slurm_logs":
+		return c.cache.SlurmLogs
+	case "events":
+		return c.cache.Events
+	}
+	return nil
+}
+
+// runCommand executes a binary with args and returns non-empty output lines.
+func runCommand(name string, args ...string) ([]string, error) {
+	cmd := exec.Command(name, args...)
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	if err := cmd.Run(); err != nil {
+		return nil, err
+	}
+	var lines []string
+	scanner := bufio.NewScanner(&out)
+	for scanner.Scan() {
+		if line := scanner.Text(); line != "" {
+			lines = append(lines, line)
+		}
+	}
+	return lines, nil
+}
+
+// parseInt converts a string to int, returning 0 on error.
+func parseInt(s string) int {
+	s = strings.TrimSpace(s)
+	v, err := strconv.Atoi(s)
+	if err != nil {
+		return 0
+	}
+	return v
+}
+
+// parseFloat converts a string to float64, returning 0.0 on error.
+func parseFloat(s string) float64 {
+	s = strings.TrimSpace(s)
+	v, err := strconv.ParseFloat(s, 64)
+	if err != nil {
+		return 0.0
+	}
+	return v
+}
+
+// parseTime converts a Slurm timestamp string (2006-01-02T15:04:05) to
+// time.Time, returning zero time on error or for "N/A"/"Unknown" values.
+func parseTime(s string) time.Time {
+	s = strings.TrimSpace(s)
+	if s == "" || s == "N/A" || s == "Unknown" || s == "None" {
+		return time.Time{}
+	}
+	t, err := time.Parse("2006-01-02T15:04:05", s)
+	if err != nil {
+		return time.Time{}
+	}
+	return t
+}
+
+// parseCPUTotal extracts the total CPU count from sinfo's A/I/O/T format.
+// e.g. "2/4/0/6" → 6.
+func parseCPUTotal(s string) int {
+	s = strings.TrimSpace(s)
+	parts := strings.Split(s, "/")
+	if len(parts) == 4 {
+		return parseInt(parts[3])
+	}
+	return parseInt(s)
+}
+
+// getClusters queries sacctmgr for cluster information.
+func getClusters() ([]Cluster, error) {
+	lines, err := runCommand("sacctmgr", "list", "cluster",
+		"--noheader", "--parsable2")
+	if err != nil {
+		return []Cluster{}, err
+	}
+	clusters := make([]Cluster, 0, len(lines))
+	for _, line := range lines {
+		f := strings.Split(line, "|")
+		if len(f) < 2 {
+			continue
+		}
+		clusters = append(clusters, Cluster{
+			ClusterName: f[0],
+			ControlHost: f[1],
+		})
+	}
+	return clusters, nil
+}
+
+// getNodes queries sinfo for per-node information.
+// Format: node_name|partition|state|cpus|mem_mb|arch|sockets|free_mem_mb|cpu_load
+func getNodes() ([]Node, error) {
+	lines, err := runCommand("sinfo",
+		"--Node", "--noheader",
+		"--format=%N|%P|%t|%c|%m|%Y|%Z|%e|%O")
+	if err != nil {
+		return []Node{}, err
+	}
+	nodeMap := make(map[string]*Node)
+	for _, line := range lines {
+		f := strings.Split(line, "|")
+		if len(f) < 9 {
+			continue
+		}
+		name := strings.TrimSpace(f[0])
+		partition := strings.TrimSuffix(strings.TrimSpace(f[1]), "*")
+		if existing, ok := nodeMap[name]; ok {
+			existing.Partitions = append(existing.Partitions, partition)
+		} else {
+			nodeMap[name] = &Node{
+				NodeName:   name,
+				Partitions: []string{partition},
+				State:      strings.TrimSpace(f[2]),
+				CPUs:       parseInt(f[3]),
+				Mem:        parseInt(f[4]),
+				Arch:       strings.TrimSpace(f[5]),
+				Sockets:    parseInt(f[6]),
+				FreeMem:    parseInt(f[7]),
+				CPULoad:    parseFloat(f[8]),
+			}
+		}
+	}
+	nodes := make([]Node, 0, len(nodeMap))
+	for _, n := range nodeMap {
+		nodes = append(nodes, *n)
+	}
+	return nodes, nil
+}
+
+// getPartitions queries sinfo for partition-level information.
+// Format: partition_name|state|max_time|total_nodes|cpus_a/i/o/t
+func getPartitions() ([]Partition, error) {
+	lines, err := runCommand("sinfo",
+		"--noheader",
+		"--format=%P|%a|%l|%D|%C")
+	if err != nil {
+		return []Partition{}, err
+	}
+	seen := make(map[string]bool)
+	partitions := make([]Partition, 0)
+	for _, line := range lines {
+		f := strings.Split(line, "|")
+		if len(f) < 5 {
+			continue
+		}
+		rawName := strings.TrimSpace(f[0])
+		isDefault := strings.HasSuffix(rawName, "*")
+		name := strings.TrimSuffix(rawName, "*")
+		if seen[name] {
+			continue
+		}
+		seen[name] = true
+		partitions = append(partitions, Partition{
+			PartitionName: name,
+			State:         strings.TrimSpace(f[1]),
+			MaxTime:       strings.TrimSpace(f[2]),
+			TotalNodes:    parseInt(f[3]),
+			TotalCPUs:     parseCPUTotal(f[4]),
+			Default:       isDefault,
+			Nodes:         []Node{},
+		})
+	}
+	return partitions, nil
+}
+
+// getJobs queries squeue for job information.
+// Format: job_id|user_name|state|partition|allocated_nodes|allocated_cpus|submit_time|start_time
+func getJobs() ([]Job, error) {
+	lines, err := runCommand("squeue",
+		"--noheader",
+		"--format=%i|%u|%T|%P|%D|%C|%V|%S")
+	if err != nil {
+		return []Job{}, err
+	}
+	jobs := make([]Job, 0, len(lines))
+	for _, line := range lines {
+		f := strings.Split(line, "|")
+		if len(f) < 8 {
+			continue
+		}
+		jobs = append(jobs, Job{
+			JobID:          strings.TrimSpace(f[0]),
+			UserName:       strings.TrimSpace(f[1]),
+			State:          strings.TrimSpace(f[2]),
+			Partition:      strings.TrimSpace(f[3]),
+			AllocatedNodes: parseInt(f[4]),
+			AllocatedCPUs:  parseInt(f[5]),
+			SubmitTime:     parseTime(f[6]),
+			StartTime:      parseTime(f[7]),
+		})
+	}
+	return jobs, nil
+}
+
+// getReservations queries scontrol for advance reservation information.
+func getReservations() ([]Reservation, error) {
+	lines, err := runCommand("scontrol", "show", "reservation", "--oneliner")
+	if err != nil {
+		return []Reservation{}, err
+	}
+	reservations := make([]Reservation, 0)
+	for _, line := range lines {
+		if !strings.Contains(line, "ReservationName=") {
+			continue
+		}
+		var r Reservation
+		r.Nodes = []Node{}
+		for _, field := range strings.Fields(line) {
+			kv := strings.SplitN(field, "=", 2)
+			if len(kv) != 2 {
+				continue
+			}
+			switch kv[0] {
+			case "ReservationName":
+				r.ReservationID = kv[1]
+			case "State":
+				r.State = kv[1]
+			case "StartTime":
+				r.StartTime = parseTime(kv[1])
+			case "EndTime":
+				r.EndTime = parseTime(kv[1])
+			case "TRES":
+				// TRES field may contain cpu=N; extract CPU count if present.
+				for _, part := range strings.Split(kv[1], ",") {
+					if strings.HasPrefix(part, "cpu=") {
+						r.CPUs = parseInt(strings.TrimPrefix(part, "cpu="))
+					}
+				}
+			}
+		}
+		if r.ReservationID != "" {
+			reservations = append(reservations, r)
+		}
+	}
+	return reservations, nil
+}
+
+// getUsers queries sacctmgr for user information.
+func getUsers() ([]User, error) {
+	lines, err := runCommand("sacctmgr", "list", "user",
+		"--noheader", "--parsable2")
+	if err != nil {
+		return []User{}, err
+	}
+	users := make([]User, 0, len(lines))
+	for _, line := range lines {
+		f := strings.Split(line, "|")
+		if len(f) < 1 {
+			continue
+		}
+		name := f[0]
+		users = append(users, User{
+			UserID:   name,
+			UserName: name,
+		})
+	}
+	return users, nil
+}
+
+// getAccounts queries sacctmgr for account information.
+func getAccounts() ([]Account, error) {
+	lines, err := runCommand("sacctmgr", "list", "account",
+		"--noheader", "--parsable2")
+	if err != nil {
+		return []Account{}, err
+	}
+	accounts := make([]Account, 0, len(lines))
+	for _, line := range lines {
+		f := strings.Split(line, "|")
+		if len(f) < 1 {
+			continue
+		}
+		name := f[0]
+		accounts = append(accounts, Account{
+			AccountID:   name,
+			AccountName: name,
+			UserNames:   []string{},
+		})
+	}
+	return accounts, nil
+}
