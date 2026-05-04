@@ -7,6 +7,8 @@ package slurm
 import (
 	"bufio"
 	"bytes"
+	"encoding/json"
+	"fmt"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -114,6 +116,18 @@ func (c *CacheManager) GetResource(resource string) interface{} {
 		return c.cache.Events
 	}
 	return nil
+}
+
+// runCommandOutput executes a binary with args and returns the raw stdout
+// bytes (suitable for JSON decoding).
+func runCommandOutput(name string, args ...string) ([]byte, error) {
+	cmd := exec.Command(name, args...)
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	if err := cmd.Run(); err != nil {
+		return nil, err
+	}
+	return out.Bytes(), nil
 }
 
 // runCommand executes a binary with args and returns non-empty output lines.
@@ -276,31 +290,21 @@ func getPartitions() ([]Partition, error) {
 	return partitions, nil
 }
 
-// getJobs queries squeue for job information.
-// Format: job_id|user_name|state|partition|allocated_nodes|allocated_cpus|submit_time|start_time
+// getJobs queries scontrol for job information using JSON output
+// (scontrol show jobs --json).  Falls back gracefully to an empty slice
+// on error so the bridge continues operating when Slurm is not available.
 func getJobs() ([]Job, error) {
-	lines, err := runCommand("squeue",
-		"--noheader",
-		"--format=%i|%u|%T|%P|%D|%C|%V|%S")
+	out, err := runCommandOutput("scontrol", "show", "jobs", "--json")
 	if err != nil {
 		return []Job{}, err
 	}
-	jobs := make([]Job, 0, len(lines))
-	for _, line := range lines {
-		f := strings.Split(line, "|")
-		if len(f) < 8 {
-			continue
-		}
-		jobs = append(jobs, Job{
-			JobID:          strings.TrimSpace(f[0]),
-			UserName:       strings.TrimSpace(f[1]),
-			State:          strings.TrimSpace(f[2]),
-			Partition:      strings.TrimSpace(f[3]),
-			AllocatedNodes: parseInt(f[4]),
-			AllocatedCPUs:  parseInt(f[5]),
-			SubmitTime:     parseTime(f[6]),
-			StartTime:      parseTime(f[7]),
-		})
+	var resp SlurmJobsResponse
+	if err := json.Unmarshal(out, &resp); err != nil {
+		return []Job{}, fmt.Errorf("parsing scontrol jobs JSON: %w", err)
+	}
+	jobs := make([]Job, 0, len(resp.Jobs))
+	for _, raw := range resp.Jobs {
+		jobs = append(jobs, MapSlurmJobRaw(raw))
 	}
 	return jobs, nil
 }
