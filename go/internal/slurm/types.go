@@ -43,21 +43,123 @@ type Node struct {
 	CPULoad    float64  `json:"cpu_load"`
 }
 
-// Job represents a user-submitted job.
-// Source: sacctmgr, scontrol show jobs, slurmdbd.
+// JobState is a typed string for Slurm job states, matching the values
+// reported by scontrol/squeue (e.g. "RUNNING", "PENDING").
+type JobState string
+
+const (
+	JobStatePending   JobState = "PENDING"
+	JobStateRunning   JobState = "RUNNING"
+	JobStateCompleted JobState = "COMPLETED"
+	JobStateFailed    JobState = "FAILED"
+	JobStateCancelled JobState = "CANCELLED"
+	JobStateTimeout   JobState = "TIMEOUT"
+	JobStateSuspended JobState = "SUSPENDED"
+	JobStatePreempted JobState = "PREEMPTED"
+	JobStateNodeFail  JobState = "NODE_FAIL"
+	JobStateBootFail  JobState = "BOOT_FAIL"
+	JobStateRequeued  JobState = "REQUEUED"
+	JobStateResizing  JobState = "RESIZING"
+)
+
+// ExitCodeSignal holds the optional signal component of a Slurm exit code.
+type ExitCodeSignal struct {
+	ID   int    `json:"id,omitempty"`
+	Name string `json:"name,omitempty"`
+}
+
+// ExitCode captures how a Slurm job or job step terminated, including the
+// return code and any terminating signal.
+type ExitCode struct {
+	// Status is a human-readable status list, e.g. ["SUCCESS"] or ["SIGNALED"].
+	Status     []string        `json:"status,omitempty"`
+	ReturnCode int             `json:"return_code,omitempty"`
+	Signal     *ExitCodeSignal `json:"signal,omitempty"`
+}
+
+// JobResources describes the CPU/node/task/memory counts for a job's
+// requested or allocated resources.
+type JobResources struct {
+	CPUs        int64 `json:"cpus,omitempty"`
+	Nodes       int64 `json:"nodes,omitempty"`
+	Tasks       int64 `json:"tasks,omitempty"`
+	MemMB       int64 `json:"mem_mb,omitempty"`
+	CPUsPerTask int64 `json:"cpus_per_task,omitempty"`
+}
+
+// JobAllocatedNode describes per-node resource usage within a job.
+type JobAllocatedNode struct {
+	NodeName          string `json:"node_name"`
+	CPUsUsed          int    `json:"cpus_used,omitempty"`
+	MemoryUsedMB      int64  `json:"memory_used_mb,omitempty"`
+	MemoryAllocatedMB int64  `json:"memory_allocated_mb,omitempty"`
+}
+
+// JobNodeResources holds the detailed per-node allocation reported by
+// scontrol show jobs in the job_resources field.
+type JobNodeResources struct {
+	Nodes          string             `json:"nodes,omitempty"`
+	AllocatedCores int                `json:"allocated_cores,omitempty"`
+	AllocatedHosts int                `json:"allocated_hosts,omitempty"`
+	AllocatedNodes []JobAllocatedNode `json:"allocated_nodes,omitempty"`
+}
+
+// Job represents a normalized user-submitted HPC job.
+// It is the canonical model used both by the event bridge and the React frontend.
+// Source: scontrol show jobs --json, squeue.
 type Job struct {
-	JobID          string    `json:"job_id"`
-	UserName       string    `json:"user_name"`
-	Partition      string    `json:"partition"`
-	State          string    `json:"state"` // pending, running, completed, failed, canceled, etc.
-	SubmitTime     time.Time `json:"submit_time"`
-	StartTime      time.Time `json:"start_time"`
-	EndTime        time.Time `json:"end_time"`
-	AllocatedCPUs  int       `json:"allocated_cpus"`
-	AllocatedNodes int       `json:"allocated_nodes"`
-	ExitCode       int       `json:"exit_code"`
-	CPUUsage       float64   `json:"cpu_usage"`
-	MemUsage       float64   `json:"mem_usage"`
+	// Identity
+	JobID     int64  `json:"job_id"`
+	Cluster   string `json:"cluster,omitempty"`
+	Name      string `json:"name,omitempty"`
+	UserID    int64  `json:"user_id,omitempty"`
+	UserName  string `json:"user_name"`
+	GroupID   int64  `json:"group_id,omitempty"`
+	GroupName string `json:"group_name,omitempty"`
+	Account   string `json:"account,omitempty"`
+	QOS       string `json:"qos,omitempty"`
+	Partition string `json:"partition"`
+
+	// Scheduling state
+	State            JobState `json:"state"`
+	StateReason      string   `json:"state_reason,omitempty"`
+	StateDescription string   `json:"state_description,omitempty"`
+	Flags            []string `json:"flags,omitempty"`
+	Priority         int64    `json:"priority,omitempty"`
+	Hold             bool     `json:"hold,omitempty"`
+	Requeue          bool     `json:"requeue,omitempty"`
+	TimeLimitMinutes int64    `json:"time_limit_minutes,omitempty"`
+
+	// Timing – pointers because absent/unknown must be distinguishable from zero.
+	SubmitTime   *time.Time `json:"submit_time,omitempty"`
+	EligibleTime *time.Time `json:"eligible_time,omitempty"`
+	StartTime    *time.Time `json:"start_time,omitempty"`
+	EndTime      *time.Time `json:"end_time,omitempty"`
+
+	// Resources
+	Requested    JobResources      `json:"requested"`
+	Allocated    JobResources      `json:"allocated"`
+	JobResources *JobNodeResources `json:"job_resources,omitempty"`
+
+	// Placement
+	Nodes          string `json:"nodes,omitempty"`
+	AllocatingNode string `json:"allocating_node,omitempty"`
+	BatchHost      string `json:"batch_host,omitempty"`
+
+	// I/O paths and working directory
+	Command string `json:"command,omitempty"`
+	WorkDir string `json:"work_dir,omitempty"`
+	Output  string `json:"output,omitempty"`
+	Error   string `json:"error,omitempty"`
+	StdIn   string `json:"stdin,omitempty"`
+
+	// Exit information
+	ExitCode        *ExitCode `json:"exit_code,omitempty"`
+	DerivedExitCode *ExitCode `json:"derived_exit_code,omitempty"`
+
+	// Runtime statistics (populated from sacct/sstat when available)
+	CPUUsageSeconds float64 `json:"cpu_usage_seconds,omitempty"`
+	MemUsageMB      float64 `json:"mem_usage_mb,omitempty"`
 }
 
 // JobStep represents a subtask of a job (sacct step) with specific resource/state.
