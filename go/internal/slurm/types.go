@@ -17,16 +17,85 @@ type Cluster struct {
 }
 
 // Partition defines a job scheduling domain (e.g. batch, debug).
-// Source: scontrol show partitions, slurm.conf.
+// Source: scontrol show partitions --json (Slurm ≥23.11 data_parser), slurm.conf.
+//
+// Field descriptions follow the Slurm scontrol partition specification:
+// https://slurm.schedmd.com/scontrol.html#SECTION_PARTITIONS---SPECIFICATIONS-FOR-CREATE-AND-UPDATE-COMMANDS
 type Partition struct {
+	// Identity
 	PartitionName string `json:"partition_name"`
-	Nodes         []Node `json:"nodes"`
-	State         string `json:"state"`      // up, down, drained, maint, etc.
-	MaxTime       string `json:"max_time"`
-	TotalNodes    int    `json:"total_nodes"`
-	TotalCPUs     int    `json:"total_cpus"`
-	Default       bool   `json:"default"`
-	MaxJobs       int    `json:"max_jobs"`
+
+	// Nodes cross-referenced from node data by partition membership.
+	Nodes []Node `json:"nodes"`
+
+	// State is the current partition state: UP, DOWN, DRAIN, or INACTIVE.
+	State string `json:"state"`
+
+	// Time limits. "INFINITE" means no limit; "NONE" means unset (use MaxTime).
+	MaxTime     string `json:"max_time"`
+	DefaultTime string `json:"default_time,omitempty"`
+
+	// Node counts
+	TotalNodes int `json:"total_nodes"`
+	TotalCPUs  int `json:"total_cpus"`
+	MinNodes   int `json:"min_nodes,omitempty"`
+	MaxNodes   int `json:"max_nodes,omitempty"` // 0 means unlimited
+
+	// Access control (empty string or "ALL" means no restriction).
+	AllowGroups   string `json:"allow_groups,omitempty"`
+	AllowAccounts string `json:"allow_accounts,omitempty"`
+	AllowQOS      string `json:"allow_qos,omitempty"`
+	DenyAccounts  string `json:"deny_accounts,omitempty"`
+	DenyQOS       string `json:"deny_qos,omitempty"`
+	// AllocNodes restricts which nodes may be used to launch jobs in this
+	// partition (corresponds to AllocNodes in slurm.conf / scontrol).
+	AllocNodes string `json:"alloc_nodes,omitempty"`
+
+	// CPU limits per node/socket (0 means unlimited).
+	MaxCPUsPerNode   int `json:"max_cpus_per_node,omitempty"`
+	MaxCPUsPerSocket int `json:"max_cpus_per_socket,omitempty"`
+
+	// Scheduling behaviour
+	Default bool `json:"default"` // true when this is the default partition
+
+	// PriorityJobFactor and PriorityTier influence relative priority of jobs.
+	PriorityJobFactor int `json:"priority_job_factor,omitempty"`
+	PriorityTier      int `json:"priority_tier,omitempty"`
+
+	// OverSubscribe describes whether jobs may share nodes, e.g. "NO",
+	// "YES:N", or "FORCE:N".
+	OverSubscribe string `json:"over_subscribe,omitempty"`
+
+	// PreemptMode is the preemption mode for this partition (e.g. "OFF",
+	// "REQUEUE"). Note: not yet exported by Slurm's JSON data_parser.
+	PreemptMode string `json:"preempt_mode,omitempty"`
+
+	// OverTimeLimit is the maximum over-run in minutes beyond MaxTime allowed
+	// before the job is killed ("INFINITE" or a minute count).
+	OverTimeLimit string `json:"over_time_limit,omitempty"`
+
+	// TRES and billing
+	TRESBillingWeights string `json:"tres_billing_weights,omitempty"`
+	TRES               string `json:"tres,omitempty"`
+
+	// QOS is the Quality of Service name associated with the partition.
+	QOS string `json:"qos,omitempty"`
+
+	// GraceTime is the number of seconds a job running in this partition is
+	// given to clean up after its time limit is reached.
+	GraceTime int `json:"grace_time,omitempty"`
+
+	// Alternate is the name of an alternate partition to use when the job
+	// cannot run in this one.
+	Alternate string `json:"alternate,omitempty"`
+
+	// NodeList is the Slurm hostlist expression for the configured nodes
+	// (e.g. "c[31-40]").
+	NodeList string `json:"node_list,omitempty"`
+
+	// MaxJobs is retained for backward compatibility; Slurm's JSON output
+	// does not currently include a per-partition job count limit.
+	MaxJobs int `json:"max_jobs,omitempty"`
 }
 
 // Node represents a Slurm compute or login node.

@@ -233,38 +233,50 @@ func getNodes() ([]Node, error) {
 	return nodes, nil
 }
 
-// getPartitions queries sinfo for partition-level information.
-// Format: partition_name|state|max_time|total_nodes|cpus_a/i/o/t
+// getDefaultPartitionNames queries sinfo for partition names and returns a set
+// of those marked as the default partition (names ending with '*' in sinfo
+// output).  The '*' suffix is the only reliable way to detect the default
+// partition because the Slurm JSON data_parser does not yet export the
+// PART_FLAG_DEFAULT bit from the flags field.
+func getDefaultPartitionNames() map[string]bool {
+	lines, err := runCommand("sinfo", "--noheader", "--format=%P")
+	if err != nil {
+		return map[string]bool{}
+	}
+	defaults := make(map[string]bool)
+	for _, line := range lines {
+		name := strings.TrimSpace(line)
+		if strings.HasSuffix(name, "*") {
+			defaults[strings.TrimSuffix(name, "*")] = true
+		}
+	}
+	return defaults
+}
+
+// getPartitions queries scontrol for partition information using JSON output
+// (scontrol show partitions --json, Slurm ≥23.11 data_parser).  Falls back
+// gracefully to an empty slice on error so the bridge continues operating
+// when Slurm is not available.
+//
+// The Default flag is determined separately via sinfo because Slurm's JSON
+// parser does not yet expose the partition flags bitmask.
 func getPartitions() ([]Partition, error) {
-	lines, err := runCommand("sinfo",
-		"--noheader",
-		"--format=%P|%a|%l|%D|%C")
+	// Identify the default partition(s) before parsing the full JSON payload.
+	defaultNames := getDefaultPartitionNames()
+
+	out, err := runCommandOutput("scontrol", "show", "partitions", "--json")
 	if err != nil {
 		return []Partition{}, err
 	}
-	seen := make(map[string]bool)
-	partitions := make([]Partition, 0)
-	for _, line := range lines {
-		f := strings.Split(line, "|")
-		if len(f) < 5 {
-			continue
-		}
-		rawName := strings.TrimSpace(f[0])
-		isDefault := strings.HasSuffix(rawName, "*")
-		name := strings.TrimSuffix(rawName, "*")
-		if seen[name] {
-			continue
-		}
-		seen[name] = true
-		partitions = append(partitions, Partition{
-			PartitionName: name,
-			State:         strings.TrimSpace(f[1]),
-			MaxTime:       strings.TrimSpace(f[2]),
-			TotalNodes:    parseInt(f[3]),
-			TotalCPUs:     parseCPUTotal(f[4]),
-			Default:       isDefault,
-			Nodes:         []Node{},
-		})
+	var resp SlurmPartitionsResponse
+	if err := json.Unmarshal(out, &resp); err != nil {
+		return []Partition{}, fmt.Errorf("parsing scontrol partitions JSON: %w", err)
+	}
+	partitions := make([]Partition, 0, len(resp.Partitions))
+	for _, raw := range resp.Partitions {
+		p := MapSlurmPartitionRaw(raw)
+		p.Default = defaultNames[p.PartitionName]
+		partitions = append(partitions, p)
 	}
 	return partitions, nil
 }
