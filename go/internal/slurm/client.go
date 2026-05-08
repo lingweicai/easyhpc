@@ -214,42 +214,21 @@ func getClusters() ([]Cluster, error) {
 	return clusters, nil
 }
 
-// getNodes queries sinfo for per-node information.
-// Format: node_name|partition|state|cpus|mem_mb|arch|sockets|free_mem_mb|cpu_load
+// getNodes queries scontrol for per-node information using JSON output
+// (scontrol show nodes --json).  Falls back gracefully to an empty slice
+// on error so the bridge continues operating when Slurm is not available.
 func getNodes() ([]Node, error) {
-	lines, err := runCommand("sinfo",
-		"--Node", "--noheader",
-		"--format=%N|%P|%t|%c|%m|%Y|%Z|%e|%O")
+	out, err := runCommandOutput("scontrol", "show", "nodes", "--json")
 	if err != nil {
 		return []Node{}, err
 	}
-	nodeMap := make(map[string]*Node)
-	for _, line := range lines {
-		f := strings.Split(line, "|")
-		if len(f) < 9 {
-			continue
-		}
-		name := strings.TrimSpace(f[0])
-		partition := strings.TrimSuffix(strings.TrimSpace(f[1]), "*")
-		if existing, ok := nodeMap[name]; ok {
-			existing.Partitions = append(existing.Partitions, partition)
-		} else {
-			nodeMap[name] = &Node{
-				NodeName:   name,
-				Partitions: []string{partition},
-				State:      strings.TrimSpace(f[2]),
-				CPUs:       parseInt(f[3]),
-				Mem:        parseInt(f[4]),
-				Arch:       strings.TrimSpace(f[5]),
-				Sockets:    parseInt(f[6]),
-				FreeMem:    parseInt(f[7]),
-				CPULoad:    parseFloat(f[8]),
-			}
-		}
+	var resp SlurmNodesResponse
+	if err := json.Unmarshal(out, &resp); err != nil {
+		return []Node{}, fmt.Errorf("parsing scontrol nodes JSON: %w", err)
 	}
-	nodes := make([]Node, 0, len(nodeMap))
-	for _, n := range nodeMap {
-		nodes = append(nodes, *n)
+	nodes := make([]Node, 0, len(resp.Nodes))
+	for _, raw := range resp.Nodes {
+		nodes = append(nodes, MapSlurmNodeRaw(raw))
 	}
 	return nodes, nil
 }

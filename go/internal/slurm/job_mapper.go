@@ -12,19 +12,6 @@ import "time"
 // Job model via MapSlurmJobRaw.
 // ---------------------------------------------------------------------------
 
-// SlurmOptionalInt models Slurm's "optional number" JSON shape:
-//
-//	{"set": true, "infinite": false, "number": N}
-//
-// When Set is false the value is absent/unknown; when Infinite is true the
-// value is unlimited.  Number is float64 to accommodate fractional billing
-// TRES values.
-type SlurmOptionalInt struct {
-	Set      bool    `json:"set"`
-	Infinite bool    `json:"infinite"`
-	Number   float64 `json:"number"`
-}
-
 // SlurmExitCodeSignalRaw models the signal sub-object inside an exit_code.
 type SlurmExitCodeSignalRaw struct {
 	ID   SlurmOptionalInt `json:"id"`

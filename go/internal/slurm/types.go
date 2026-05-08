@@ -30,7 +30,7 @@ type Partition struct {
 }
 
 // Node represents a Slurm compute or login node.
-// Source: scontrol show nodes, slurmctld.
+// Source: scontrol show nodes --json (via MapSlurmNodeRaw), slurmctld.
 type Node struct {
 	NodeName   string   `json:"node_name"`
 	Arch       string   `json:"arch"`
