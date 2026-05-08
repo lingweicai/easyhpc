@@ -301,7 +301,25 @@ func getJobs() ([]Job, error) {
 }
 
 // getReservations queries scontrol for advance reservation information.
+// It prefers JSON output (Slurm data_parser) and falls back to the legacy
+// oneliner parser when JSON output is unavailable.
 func getReservations() ([]Reservation, error) {
+	out, err := runCommandOutput("scontrol", "show", "reservations", "--json")
+	if err == nil {
+		var resp SlurmReservationsResponse
+		if err := json.Unmarshal(out, &resp); err == nil {
+			raws := resp.Items()
+			reservations := make([]Reservation, 0, len(raws))
+			for _, raw := range raws {
+				r := MapSlurmReservationRaw(raw)
+				if r.ReservationID != "" {
+					reservations = append(reservations, r)
+				}
+			}
+			return reservations, nil
+		}
+	}
+
 	lines, err := runCommand("scontrol", "show", "reservation", "--oneliner")
 	if err != nil {
 		return []Reservation{}, err
@@ -321,19 +339,47 @@ func getReservations() ([]Reservation, error) {
 			switch kv[0] {
 			case "ReservationName":
 				r.ReservationID = kv[1]
+				r.ReservationName = kv[1]
 			case "State":
 				r.State = kv[1]
 			case "StartTime":
-				r.StartTime = parseTime(kv[1])
-			case "EndTime":
-				r.EndTime = parseTime(kv[1])
-			case "TRES":
-				// TRES field may contain cpu=N; extract CPU count if present.
-				for _, part := range strings.Split(kv[1], ",") {
-					if strings.HasPrefix(part, "cpu=") {
-						r.CPUs = parseInt(strings.TrimPrefix(part, "cpu="))
-					}
+				if t := parseTime(kv[1]); !t.IsZero() {
+					r.StartTime = &t
 				}
+			case "EndTime":
+				if t := parseTime(kv[1]); !t.IsZero() {
+					r.EndTime = &t
+				}
+			case "Users":
+				r.Users = kv[1]
+			case "Accounts":
+				r.Accounts = kv[1]
+			case "Groups":
+				r.Groups = kv[1]
+			case "Nodes":
+				r.NodeList = kv[1]
+			case "NodeCnt":
+				r.NodeCount = parseInt(kv[1])
+			case "CoreCnt":
+				r.CoreCount = parseInt(kv[1])
+			case "PartitionName":
+				r.PartitionName = kv[1]
+			case "Features":
+				r.Features = kv[1]
+			case "Licenses":
+				r.Licenses = kv[1]
+			case "BurstBuffer":
+				r.BurstBuffer = kv[1]
+			case "Duration":
+				r.Duration = kv[1]
+			case "MaxStartDelay":
+				r.MaxStartDelay = kv[1]
+			case "Flags":
+				r.Flags = parseSlurmStringListRaw(json.RawMessage(strconv.Quote(kv[1])))
+			case "TRES":
+				r.TRES = kv[1]
+				// TRES field may contain cpu=N; extract CPU count if present.
+				r.CPUs = extractCPUFromTRES(kv[1])
 			}
 		}
 		if r.ReservationID != "" {

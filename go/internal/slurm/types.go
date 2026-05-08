@@ -237,7 +237,7 @@ type JobStep struct {
 	JobStepID string  `json:"job_step_id"`
 	JobID     string  `json:"job_id"`
 	StepID    string  `json:"step_id"`
-	State     string  `json:"state"`      // running, completed, failed, etc.
+	State     string  `json:"state"` // running, completed, failed, etc.
 	CPUUsage  float64 `json:"cpu_usage"`
 	MemUsage  float64 `json:"mem_usage"`
 	TimeSpent string  `json:"time_spent"` // duration string, e.g. "1h23m"
@@ -268,12 +268,40 @@ type Account struct {
 // Reservation represents reserved resources for specific jobs, users, or accounts.
 // Source: scontrol show reservations, slurmdbd.
 type Reservation struct {
-	ReservationID string    `json:"reservation_id"`
-	StartTime     time.Time `json:"start_time"`
-	EndTime       time.Time `json:"end_time"`
-	Nodes         []Node    `json:"nodes"`
-	CPUs          int       `json:"cpus"`
-	State         string    `json:"state"` // active, expired, cancelled
+	// Identity
+	ReservationID   string `json:"reservation_id"`
+	ReservationName string `json:"reservation_name,omitempty"`
+
+	// Timing
+	StartTime *time.Time `json:"start_time,omitempty"`
+	EndTime   *time.Time `json:"end_time,omitempty"`
+	Duration  string     `json:"duration,omitempty"`
+
+	// Access control
+	// Users/Accounts/Groups follow Slurm's reservation format and are typically
+	// comma-separated lists as emitted by scontrol.
+	Users    string `json:"users,omitempty"`
+	Accounts string `json:"accounts,omitempty"`
+	Groups   string `json:"groups,omitempty"`
+
+	// Resources / nodes
+	Nodes         []Node `json:"nodes"`
+	NodeList      string `json:"node_list,omitempty"`
+	NodeCount     int    `json:"node_count,omitempty"`
+	CoreCount     int    `json:"core_count,omitempty"`
+	CPUs          int    `json:"cpus,omitempty"`
+	PartitionName string `json:"partition_name,omitempty"`
+	Features      string `json:"features,omitempty"`
+	Licenses      string `json:"licenses,omitempty"`
+	TRES          string `json:"tres,omitempty"`
+	BurstBuffer   string `json:"burst_buffer,omitempty"`
+
+	// Flags / behavior
+	Flags         []string `json:"flags,omitempty"`
+	MaxStartDelay string   `json:"max_start_delay,omitempty"`
+
+	// Runtime state (e.g. ACTIVE, INACTIVE, COMPLETED).
+	State string `json:"state,omitempty"`
 }
 
 // SlurmLog represents a log entry from Slurm's slurm.log file.
@@ -291,7 +319,7 @@ type SlurmLog struct {
 // Source: strigger, slurmctld, slurm.log.
 type Event struct {
 	EventID            string    `json:"event_id"`
-	EventType          string    `json:"event_type"`           // node_up, node_down, job_start, job_end, etc.
+	EventType          string    `json:"event_type"` // node_up, node_down, job_start, job_end, etc.
 	Timestamp          time.Time `json:"timestamp"`
 	AssociatedObjectID string    `json:"associated_object_id"` // job_id, node_name, etc.
 	EventMessage       string    `json:"event_message"`
