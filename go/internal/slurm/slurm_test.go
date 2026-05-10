@@ -13,6 +13,7 @@ func TestNewCacheIsEmpty(t *testing.T) {
 	snap := c.Get()
 
 	resources := []string{"clusters", "partitions", "nodes", "jobs", "reservations", "users", "accounts"}
+	resources := []string{"clusters", "partitions", "nodes", "jobs", "reservations", "users", "accounts", "slurmdb"}
 	for _, r := range resources {
 		v, ok := snap[r]
 		if !ok {
@@ -22,6 +23,23 @@ func TestNewCacheIsEmpty(t *testing.T) {
 		// Each value must be a non-nil slice (may be empty).
 		if v == nil {
 			t.Errorf("resource %q is nil, want empty slice", r)
+		}
+	}
+}
+
+func TestNewCacheHasExtendedResources(t *testing.T) {
+	c := slurm.NewCache()
+	snap := c.Get()
+
+	extended := []string{"job_steps", "slurm_logs", "events"}
+	for _, r := range extended {
+		v, ok := snap[r]
+		if !ok {
+			t.Errorf("missing extended resource %q in initial snapshot", r)
+			continue
+		}
+		if v == nil {
+			t.Errorf("extended resource %q is nil, want empty slice", r)
 		}
 	}
 }
@@ -40,6 +58,20 @@ func TestGetResourceReturnsCorrectType(t *testing.T) {
 		{"reservations", false},
 		{"users", false},
 		{"accounts", false},
+		{"job_steps", false},
+		{"reservations", false},
+		{"users", false},
+		{"accounts", false},
+		{"slurmdb", false},
+		{"slurmdb_clusters", false},
+		{"slurmdb_accounts", false},
+		{"slurmdb_users", false},
+		{"slurmdb_associations", false},
+		{"slurmdb_qos", false},
+		{"slurmdb_wckeys", false},
+		{"slurmdb_tres", false},
+		{"slurm_logs", false},
+		{"events", false},
 		{"unknown", true},
 	}
 
@@ -63,6 +95,7 @@ func TestRefreshWithoutSlurm(t *testing.T) {
 	snap := c.Get()
 	if len(snap) == 0 {
 		t.Error("Get() returned empty map after Refresh(), want 7 resource entries")
+		t.Error("Get() returned empty map after Refresh(), want resource entries")
 	}
 }
 
