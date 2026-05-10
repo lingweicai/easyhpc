@@ -17,10 +17,10 @@ type SlurmDBCommandProfile struct {
 
 // SlurmDBMeta contains snapshot collection metadata.
 type SlurmDBMeta struct {
-	Source          string                          `json:"source"`
-	SacctmgrVersion string                          `json:"sacctmgr_version,omitempty"`
-	Partial         bool                            `json:"partial"`
-	Errors          []string                        `json:"errors"`
+	Source          string                           `json:"source"`
+	SacctmgrVersion string                           `json:"sacctmgr_version,omitempty"`
+	Partial         bool                             `json:"partial"`
+	Errors          []string                         `json:"errors"`
 	CommandProfiles map[string]SlurmDBCommandProfile `json:"command_profiles"`
 }
 
@@ -55,25 +55,25 @@ type SlurmDBUser struct {
 
 // SlurmDBAssociation is the canonical SlurmDB association record.
 type SlurmDBAssociation struct {
-	ID                  *int64   `json:"id,omitempty"`
-	Cluster             string   `json:"cluster,omitempty"`
-	Account             string   `json:"account,omitempty"`
-	User                string   `json:"user,omitempty"`
-	Partition           string   `json:"partition,omitempty"`
-	IsDefault           bool     `json:"is_default"`
-	ParentID            *int64   `json:"parent_id,omitempty"`
-	MaxJobs             *int64   `json:"max_jobs,omitempty"`
-	MaxSubmitJobs       *int64   `json:"max_submit_jobs,omitempty"`
-	MaxWall             string   `json:"max_wall,omitempty"`
-	GrpJobs             *int64   `json:"grp_jobs,omitempty"`
-	GrpSubmitJobs       *int64   `json:"grp_submit_jobs,omitempty"`
-	GrpTRES             string   `json:"grp_tres,omitempty"`
-	MaxTRESPerJob       string   `json:"max_tres_per_job,omitempty"`
-	MaxTRESPerNode      string   `json:"max_tres_per_node,omitempty"`
-	MaxTRESMinsPerJob   string   `json:"max_tres_mins_per_job,omitempty"`
-	Priority            *int64   `json:"priority,omitempty"`
-	SharesRaw           *int64   `json:"shares_raw,omitempty"`
-	QOSList             []string `json:"qos_list"`
+	ID                *int64   `json:"id,omitempty"`
+	Cluster           string   `json:"cluster,omitempty"`
+	Account           string   `json:"account,omitempty"`
+	User              string   `json:"user,omitempty"`
+	Partition         string   `json:"partition,omitempty"`
+	IsDefault         bool     `json:"is_default"`
+	ParentID          *int64   `json:"parent_id,omitempty"`
+	MaxJobs           *int64   `json:"max_jobs,omitempty"`
+	MaxSubmitJobs     *int64   `json:"max_submit_jobs,omitempty"`
+	MaxWall           string   `json:"max_wall,omitempty"`
+	GrpJobs           *int64   `json:"grp_jobs,omitempty"`
+	GrpSubmitJobs     *int64   `json:"grp_submit_jobs,omitempty"`
+	GrpTRES           string   `json:"grp_tres,omitempty"`
+	MaxTRESPerJob     string   `json:"max_tres_per_job,omitempty"`
+	MaxTRESPerNode    string   `json:"max_tres_per_node,omitempty"`
+	MaxTRESMinsPerJob string   `json:"max_tres_mins_per_job,omitempty"`
+	Priority          *int64   `json:"priority,omitempty"`
+	SharesRaw         *int64   `json:"shares_raw,omitempty"`
+	QOSList           []string `json:"qos_list"`
 }
 
 // SlurmDBQOS is the canonical SlurmDB QOS record.
@@ -111,18 +111,18 @@ type SlurmDBTRES struct {
 // SlurmDBSnapshot is the canonical SlurmDB snapshot resource emitted by the
 // bridge and consumed by Cockpit channel clients.
 type SlurmDBSnapshot struct {
-	SchemaVersion string              `json:"schema_version"`
-	CollectedAt   *time.Time          `json:"collected_at,omitempty"`
-	Clusters      []SlurmDBCluster    `json:"clusters"`
-	Accounts      []SlurmDBAccount    `json:"accounts"`
-	Users         []SlurmDBUser       `json:"users"`
+	SchemaVersion string               `json:"schema_version"`
+	CollectedAt   *time.Time           `json:"collected_at,omitempty"`
+	Clusters      []SlurmDBCluster     `json:"clusters"`
+	Accounts      []SlurmDBAccount     `json:"accounts"`
+	Users         []SlurmDBUser        `json:"users"`
 	Associations  []SlurmDBAssociation `json:"associations"`
-	QOS           []SlurmDBQOS        `json:"qos"`
-	Wckeys        []SlurmDBWckey      `json:"wckeys"`
-	TRES          []SlurmDBTRES       `json:"tres"`
-	Partial       bool                `json:"partial"`
-	Errors        []string            `json:"errors"`
-	Meta          SlurmDBMeta         `json:"meta"`
+	QOS           []SlurmDBQOS         `json:"qos"`
+	Wckeys        []SlurmDBWckey       `json:"wckeys"`
+	TRES          []SlurmDBTRES        `json:"tres"`
+	Partial       bool                 `json:"partial"`
+	Errors        []string             `json:"errors"`
+	Meta          SlurmDBMeta          `json:"meta"`
 }
 
 // SlurmDBRecordsResource is a targeted SlurmDB resource wrapper for a single
@@ -148,8 +148,8 @@ func newEmptySlurmDBSnapshot() SlurmDBSnapshot {
 		TRES:          []SlurmDBTRES{},
 		Errors:        []string{},
 		Meta: SlurmDBMeta{
-			Source: "sacctmgr",
-			Errors: []string{},
+			Source:          "sacctmgr",
+			Errors:          []string{},
 			CommandProfiles: slurmDBCommandProfiles(),
 		},
 	}
@@ -165,4 +165,3 @@ func newSlurmDBRecordsResource(snapshot SlurmDBSnapshot, records interface{}) Sl
 		Meta:          snapshot.Meta,
 	}
 }
-

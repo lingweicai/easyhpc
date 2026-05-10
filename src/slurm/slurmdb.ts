@@ -382,4 +382,3 @@ export function normalizeSlurmDBRecordsResource<TRecord, TModel>(
         meta: normalizeSlurmDBMeta(record.meta),
     };
 }
-

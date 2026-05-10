@@ -410,4 +410,3 @@ func getSlurmDBSnapshot() (SlurmDBSnapshot, error) {
 	snapshot.Meta.Partial = snapshot.Partial
 	return snapshot, firstErr
 }
-

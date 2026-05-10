@@ -199,4 +199,3 @@ func TestSlurmDBResourceWrappers(t *testing.T) {
 		t.Error("Records: got nil, want empty slice")
 	}
 }
-
