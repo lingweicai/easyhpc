@@ -199,7 +199,7 @@ func MapSlurmDBAssociationRecord(fields []string) SlurmDBAssociation {
 	defaultQOS := parseSlurmDBText(slurmDBField(fields, 5))
 	hasDefaultQOS := defaultQOS != ""
 	qosList := parseSlurmDBList(slurmDBField(fields, 18))
-	if hasDefaultQOS && defaultQOS != "" {
+	if hasDefaultQOS {
 		found := false
 		for _, qos := range qosList {
 			if qos == defaultQOS {
