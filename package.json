@@ -1,6 +1,6 @@
 {
-  "name": "starter-kit",
-  "description": "Scaffolding for a cockpit module",
+  "name": "easyhpc",
+  "description": "Cockpit plugin for Slurm HPC cluster management",
   "type": "module",
   "main": "index.js",
   "repository": "git@github.com:cockpit/starter-kit.git",

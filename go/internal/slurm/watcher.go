@@ -86,6 +86,10 @@ func parseLogLine(line string) LogEvent {
 	case strings.Contains(lower, "debug"):
 		level = "debug"
 	}
+	return LogEvent{
+		Level:     level,
+		Message:   line,
+		Timestamp: time.Now().Format(time.RFC3339),
 
 	// Extract timestamp from the log line if present ([YYYY-MM-DDTHH:MM:SS.mmm]).
 	ts := time.Now().Format(time.RFC3339)

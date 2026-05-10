@@ -7,6 +7,7 @@ package slurm
 import (
 	"bufio"
 	"bytes"
+	"os/exec"
 	"encoding/json"
 	"fmt"
 	"os/exec"
@@ -30,6 +31,9 @@ func NewCache() *CacheManager {
 			Partitions:   []Partition{},
 			Nodes:        []Node{},
 			Jobs:         []Job{},
+			Reservations: []Reservation{},
+			Users:        []User{},
+			Accounts:     []Account{},
 			JobSteps:     []JobStep{},
 			Reservations: []Reservation{},
 			Users:        []User{},
@@ -45,10 +49,13 @@ func NewCache() *CacheManager {
 // It returns the first error encountered but still stores whatever data
 // could be collected.
 func (c *CacheManager) Refresh() error {
+	clusters, errC := getClusters()
 	nodes, errN := getNodes()
 	partitions, errP := getPartitions()
 	jobs, errJ := getJobs()
 	reservations, errR := getReservations()
+	users, errU := getUsers()
+	accounts, errA := getAccounts()
 	slurmdb, errDB := getSlurmDBSnapshot()
 	clusters := legacyClustersFromSlurmDB(slurmdb.Clusters)
 	users := legacyUsersFromSlurmDB(slurmdb.Users)
@@ -62,6 +69,10 @@ func (c *CacheManager) Refresh() error {
 	c.cache.Reservations = reservations
 	c.cache.Users = users
 	c.cache.Accounts = accounts
+	c.cache.LastUpdated = time.Now()
+	c.mu.Unlock()
+
+	for _, err := range []error{errC, errN, errP, errJ, errR, errU, errA} {
 	c.cache.SlurmDB = slurmdb
 	c.cache.LastUpdated = time.Now()
 	c.mu.Unlock()
@@ -83,6 +94,9 @@ func (c *CacheManager) Get() map[string]interface{} {
 		"partitions":   c.cache.Partitions,
 		"nodes":        c.cache.Nodes,
 		"jobs":         c.cache.Jobs,
+		"reservations": c.cache.Reservations,
+		"users":        c.cache.Users,
+		"accounts":     c.cache.Accounts,
 		"job_steps":    c.cache.JobSteps,
 		"reservations": c.cache.Reservations,
 		"users":        c.cache.Users,
@@ -223,6 +237,13 @@ func getClusters() ([]Cluster, error) {
 	clusters := make([]Cluster, 0, len(lines))
 	for _, line := range lines {
 		f := strings.Split(line, "|")
+		if len(f) < 3 {
+			continue
+		}
+		clusters = append(clusters, Cluster{
+			Name:        f[0],
+			ControlHost: f[1],
+			ControlPort: f[2],
 		if len(f) < 2 {
 			continue
 		}
@@ -234,6 +255,38 @@ func getClusters() ([]Cluster, error) {
 	return clusters, nil
 }
 
+// getNodes queries sinfo for per-node information.
+func getNodes() ([]Node, error) {
+	lines, err := runCommand("sinfo",
+		"--Node", "--noheader",
+		"--format=%N|%P|%t|%c|%m|%r")
+	if err != nil {
+		return []Node{}, err
+	}
+	nodeMap := make(map[string]*Node)
+	for _, line := range lines {
+		f := strings.Split(line, "|")
+		if len(f) < 6 {
+			continue
+		}
+		name := strings.TrimSpace(f[0])
+		partition := strings.TrimSuffix(strings.TrimSpace(f[1]), "*")
+		if existing, ok := nodeMap[name]; ok {
+			existing.Partition = existing.Partition + "," + partition
+		} else {
+			nodeMap[name] = &Node{
+				Name:      name,
+				Partition: partition,
+				State:     strings.TrimSpace(f[2]),
+				CPUs:      strings.TrimSpace(f[3]),
+				Memory:    strings.TrimSpace(f[4]),
+				Reason:    strings.TrimSpace(f[5]),
+			}
+		}
+	}
+	nodes := make([]Node, 0, len(nodeMap))
+	for _, n := range nodeMap {
+		nodes = append(nodes, *n)
 // getNodes queries scontrol for per-node information using JSON output
 // (scontrol show nodes --json).  Falls back gracefully to an empty slice
 // on error so the bridge continues operating when Slurm is not available.
@@ -253,6 +306,32 @@ func getNodes() ([]Node, error) {
 	return nodes, nil
 }
 
+// getPartitions queries sinfo for partition-level information.
+func getPartitions() ([]Partition, error) {
+	lines, err := runCommand("sinfo",
+		"--noheader",
+		"--format=%P|%a|%F|%D")
+	if err != nil {
+		return []Partition{}, err
+	}
+	seen := make(map[string]bool)
+	partitions := make([]Partition, 0)
+	for _, line := range lines {
+		f := strings.Split(line, "|")
+		if len(f) < 4 {
+			continue
+		}
+		name := strings.TrimSuffix(strings.TrimSpace(f[0]), "*")
+		if seen[name] {
+			continue
+		}
+		seen[name] = true
+		partitions = append(partitions, Partition{
+			Name:       name,
+			State:      strings.TrimSpace(f[1]),
+			TotalCPUs:  strings.TrimSpace(f[2]),
+			TotalNodes: strings.TrimSpace(f[3]),
+		})
 // getDefaultPartitionNames queries sinfo for partition names and returns a set
 // of those marked as the default partition (names ending with '*' in sinfo
 // output).  The '*' suffix is the only reliable way to detect the default
@@ -301,6 +380,32 @@ func getPartitions() ([]Partition, error) {
 	return partitions, nil
 }
 
+// getJobs queries squeue for job information.
+func getJobs() ([]Job, error) {
+	lines, err := runCommand("squeue",
+		"--noheader",
+		"--format=%i|%j|%u|%a|%T|%P|%D|%M|%l|%r")
+	if err != nil {
+		return []Job{}, err
+	}
+	jobs := make([]Job, 0, len(lines))
+	for _, line := range lines {
+		f := strings.Split(line, "|")
+		if len(f) < 10 {
+			continue
+		}
+		jobs = append(jobs, Job{
+			JobID:     strings.TrimSpace(f[0]),
+			Name:      strings.TrimSpace(f[1]),
+			User:      strings.TrimSpace(f[2]),
+			Account:   strings.TrimSpace(f[3]),
+			State:     strings.TrimSpace(f[4]),
+			Partition: strings.TrimSpace(f[5]),
+			Nodes:     strings.TrimSpace(f[6]),
+			Time:      strings.TrimSpace(f[7]),
+			TimeLimit: strings.TrimSpace(f[8]),
+			Reason:    strings.TrimSpace(f[9]),
+		})
 // getJobs queries scontrol for job information using JSON output
 // (scontrol show jobs --json).  Falls back gracefully to an empty slice
 // on error so the bridge continues operating when Slurm is not available.
@@ -321,6 +426,7 @@ func getJobs() ([]Job, error) {
 }
 
 // getReservations queries scontrol for advance reservation information.
+func getReservations() ([]Reservation, error) {
 // It prefers JSON output (Slurm data_parser) and falls back to the legacy
 // oneliner parser when JSON output is unavailable.
 func getReservations() ([]Reservation, error) {
@@ -358,6 +464,17 @@ func getReservations() ([]Reservation, error) {
 			}
 			switch kv[0] {
 			case "ReservationName":
+				r.Name = kv[1]
+			case "State":
+				r.State = kv[1]
+			case "Nodes":
+				r.Nodes = kv[1]
+			case "StartTime":
+				r.StartTime = kv[1]
+			case "EndTime":
+				r.EndTime = kv[1]
+			case "Duration":
+				r.Duration = kv[1]
 				r.ReservationID = kv[1]
 				r.ReservationName = kv[1]
 			case "State":
@@ -374,6 +491,9 @@ func getReservations() ([]Reservation, error) {
 				r.Users = kv[1]
 			case "Accounts":
 				r.Accounts = kv[1]
+			}
+		}
+		if r.Name != "" {
 			case "Groups":
 				r.Groups = kv[1]
 			case "Nodes":
@@ -419,6 +539,13 @@ func getUsers() ([]User, error) {
 	users := make([]User, 0, len(lines))
 	for _, line := range lines {
 		f := strings.Split(line, "|")
+		if len(f) < 3 {
+			continue
+		}
+		users = append(users, User{
+			Name:           f[0],
+			DefaultAccount: f[1],
+			Admin:          f[2],
 		if len(f) < 1 {
 			continue
 		}
@@ -441,6 +568,13 @@ func getAccounts() ([]Account, error) {
 	accounts := make([]Account, 0, len(lines))
 	for _, line := range lines {
 		f := strings.Split(line, "|")
+		if len(f) < 3 {
+			continue
+		}
+		accounts = append(accounts, Account{
+			Name:         f[0],
+			Description:  f[1],
+			Organization: f[2],
 		if len(f) < 1 {
 			continue
 		}
