@@ -6,6 +6,7 @@ export interface SlurmDBCommandProfileRecord {
     object: string;
     fields: string[];
     parsable2: boolean;
+    /** Raw wire-format key from the Go bridge. */
     noheader: boolean;
 }
 
@@ -234,8 +235,6 @@ export interface SlurmDBRecordsResource<T> {
     meta: SlurmDBMeta;
 }
 
-const optionalString = (value?: string): string | undefined => value ?? undefined;
-const optionalNumber = (value?: number): number | undefined => value ?? undefined;
 const stringArray = (value?: string[]): string[] => Array.isArray(value) ? [...value] : [];
 
 function normalizeCommandProfile(record: SlurmDBCommandProfileRecord): SlurmDBCommandProfile {
@@ -264,20 +263,20 @@ export function normalizeSlurmDBMeta(record?: SlurmDBMetaRecord): SlurmDBMeta {
 export function normalizeSlurmDBCluster(record: SlurmDBClusterRecord): SlurmDBCluster {
     return {
         name: record.name,
-        ...(optionalString(record.control_host) !== undefined ? { controlHost: record.control_host } : {}),
-        ...(optionalString(record.classification) !== undefined ? { classification: record.classification } : {}),
-        ...(optionalString(record.organization) !== undefined ? { organization: record.organization } : {}),
-        ...(optionalString(record.federation) !== undefined ? { federation: record.federation } : {}),
+        ...(record.control_host !== undefined ? { controlHost: record.control_host } : {}),
+        ...(record.classification !== undefined ? { classification: record.classification } : {}),
+        ...(record.organization !== undefined ? { organization: record.organization } : {}),
+        ...(record.federation !== undefined ? { federation: record.federation } : {}),
     };
 }
 
 export function normalizeSlurmDBAccount(record: SlurmDBAccountRecord): SlurmDBAccount {
     return {
         name: record.name,
-        ...(optionalString(record.description) !== undefined ? { description: record.description } : {}),
-        ...(optionalString(record.organization) !== undefined ? { organization: record.organization } : {}),
-        ...(optionalString(record.parent_account) !== undefined ? { parentAccount: record.parent_account } : {}),
-        ...(optionalString(record.default_qos) !== undefined ? { defaultQos: record.default_qos } : {}),
+        ...(record.description !== undefined ? { description: record.description } : {}),
+        ...(record.organization !== undefined ? { organization: record.organization } : {}),
+        ...(record.parent_account !== undefined ? { parentAccount: record.parent_account } : {}),
+        ...(record.default_qos !== undefined ? { defaultQos: record.default_qos } : {}),
         qosList: stringArray(record.qos_list),
         flags: stringArray(record.flags),
     };
@@ -286,33 +285,33 @@ export function normalizeSlurmDBAccount(record: SlurmDBAccountRecord): SlurmDBAc
 export function normalizeSlurmDBUser(record: SlurmDBUserRecord): SlurmDBUser {
     return {
         name: record.name,
-        ...(optionalString(record.default_account) !== undefined ? { defaultAccount: record.default_account } : {}),
-        ...(optionalString(record.default_wckey) !== undefined ? { defaultWckey: record.default_wckey } : {}),
-        ...(optionalString(record.admin_level) !== undefined ? { adminLevel: record.admin_level } : {}),
+        ...(record.default_account !== undefined ? { defaultAccount: record.default_account } : {}),
+        ...(record.default_wckey !== undefined ? { defaultWckey: record.default_wckey } : {}),
+        ...(record.admin_level !== undefined ? { adminLevel: record.admin_level } : {}),
         coordinatorAccounts: stringArray(record.coordinator_accounts),
     };
 }
 
 export function normalizeSlurmDBAssociation(record: SlurmDBAssociationRecord): SlurmDBAssociation {
     return {
-        ...(optionalNumber(record.id) !== undefined ? { id: record.id } : {}),
-        ...(optionalString(record.cluster) !== undefined ? { cluster: record.cluster } : {}),
-        ...(optionalString(record.account) !== undefined ? { account: record.account } : {}),
-        ...(optionalString(record.user) !== undefined ? { user: record.user } : {}),
-        ...(optionalString(record.partition) !== undefined ? { partition: record.partition } : {}),
+        ...(record.id !== undefined ? { id: record.id } : {}),
+        ...(record.cluster !== undefined ? { cluster: record.cluster } : {}),
+        ...(record.account !== undefined ? { account: record.account } : {}),
+        ...(record.user !== undefined ? { user: record.user } : {}),
+        ...(record.partition !== undefined ? { partition: record.partition } : {}),
         isDefault: record.is_default ?? false,
-        ...(optionalNumber(record.parent_id) !== undefined ? { parentId: record.parent_id } : {}),
-        ...(optionalNumber(record.max_jobs) !== undefined ? { maxJobs: record.max_jobs } : {}),
-        ...(optionalNumber(record.max_submit_jobs) !== undefined ? { maxSubmitJobs: record.max_submit_jobs } : {}),
-        ...(optionalString(record.max_wall) !== undefined ? { maxWall: record.max_wall } : {}),
-        ...(optionalNumber(record.grp_jobs) !== undefined ? { grpJobs: record.grp_jobs } : {}),
-        ...(optionalNumber(record.grp_submit_jobs) !== undefined ? { grpSubmitJobs: record.grp_submit_jobs } : {}),
-        ...(optionalString(record.grp_tres) !== undefined ? { grpTres: record.grp_tres } : {}),
-        ...(optionalString(record.max_tres_per_job) !== undefined ? { maxTresPerJob: record.max_tres_per_job } : {}),
-        ...(optionalString(record.max_tres_per_node) !== undefined ? { maxTresPerNode: record.max_tres_per_node } : {}),
-        ...(optionalString(record.max_tres_mins_per_job) !== undefined ? { maxTresMinsPerJob: record.max_tres_mins_per_job } : {}),
-        ...(optionalNumber(record.priority) !== undefined ? { priority: record.priority } : {}),
-        ...(optionalNumber(record.shares_raw) !== undefined ? { sharesRaw: record.shares_raw } : {}),
+        ...(record.parent_id !== undefined ? { parentId: record.parent_id } : {}),
+        ...(record.max_jobs !== undefined ? { maxJobs: record.max_jobs } : {}),
+        ...(record.max_submit_jobs !== undefined ? { maxSubmitJobs: record.max_submit_jobs } : {}),
+        ...(record.max_wall !== undefined ? { maxWall: record.max_wall } : {}),
+        ...(record.grp_jobs !== undefined ? { grpJobs: record.grp_jobs } : {}),
+        ...(record.grp_submit_jobs !== undefined ? { grpSubmitJobs: record.grp_submit_jobs } : {}),
+        ...(record.grp_tres !== undefined ? { grpTres: record.grp_tres } : {}),
+        ...(record.max_tres_per_job !== undefined ? { maxTresPerJob: record.max_tres_per_job } : {}),
+        ...(record.max_tres_per_node !== undefined ? { maxTresPerNode: record.max_tres_per_node } : {}),
+        ...(record.max_tres_mins_per_job !== undefined ? { maxTresMinsPerJob: record.max_tres_mins_per_job } : {}),
+        ...(record.priority !== undefined ? { priority: record.priority } : {}),
+        ...(record.shares_raw !== undefined ? { sharesRaw: record.shares_raw } : {}),
         qosList: stringArray(record.qos_list),
     };
 }
@@ -320,42 +319,42 @@ export function normalizeSlurmDBAssociation(record: SlurmDBAssociationRecord): S
 export function normalizeSlurmDBQOS(record: SlurmDBQOSRecord): SlurmDBQOS {
     return {
         name: record.name,
-        ...(optionalString(record.description) !== undefined ? { description: record.description } : {}),
-        ...(optionalNumber(record.priority) !== undefined ? { priority: record.priority } : {}),
+        ...(record.description !== undefined ? { description: record.description } : {}),
+        ...(record.priority !== undefined ? { priority: record.priority } : {}),
         flags: stringArray(record.flags),
-        ...(optionalNumber(record.max_jobs_per_user) !== undefined ? { maxJobsPerUser: record.max_jobs_per_user } : {}),
-        ...(optionalNumber(record.max_submit_jobs_per_user) !== undefined ? { maxSubmitJobsPerUser: record.max_submit_jobs_per_user } : {}),
-        ...(optionalNumber(record.grp_jobs) !== undefined ? { grpJobs: record.grp_jobs } : {}),
-        ...(optionalNumber(record.grp_submit_jobs) !== undefined ? { grpSubmitJobs: record.grp_submit_jobs } : {}),
-        ...(optionalString(record.grp_tres) !== undefined ? { grpTres: record.grp_tres } : {}),
-        ...(optionalString(record.max_tres_per_job) !== undefined ? { maxTresPerJob: record.max_tres_per_job } : {}),
-        ...(optionalString(record.max_tres_per_user) !== undefined ? { maxTresPerUser: record.max_tres_per_user } : {}),
-        ...(optionalString(record.max_wall) !== undefined ? { maxWall: record.max_wall } : {}),
+        ...(record.max_jobs_per_user !== undefined ? { maxJobsPerUser: record.max_jobs_per_user } : {}),
+        ...(record.max_submit_jobs_per_user !== undefined ? { maxSubmitJobsPerUser: record.max_submit_jobs_per_user } : {}),
+        ...(record.grp_jobs !== undefined ? { grpJobs: record.grp_jobs } : {}),
+        ...(record.grp_submit_jobs !== undefined ? { grpSubmitJobs: record.grp_submit_jobs } : {}),
+        ...(record.grp_tres !== undefined ? { grpTres: record.grp_tres } : {}),
+        ...(record.max_tres_per_job !== undefined ? { maxTresPerJob: record.max_tres_per_job } : {}),
+        ...(record.max_tres_per_user !== undefined ? { maxTresPerUser: record.max_tres_per_user } : {}),
+        ...(record.max_wall !== undefined ? { maxWall: record.max_wall } : {}),
     };
 }
 
 export function normalizeSlurmDBWckey(record: SlurmDBWckeyRecord): SlurmDBWckey {
     return {
         name: record.name,
-        ...(optionalString(record.cluster) !== undefined ? { cluster: record.cluster } : {}),
-        ...(optionalString(record.user) !== undefined ? { user: record.user } : {}),
+        ...(record.cluster !== undefined ? { cluster: record.cluster } : {}),
+        ...(record.user !== undefined ? { user: record.user } : {}),
         isDefault: record.is_default ?? false,
     };
 }
 
 export function normalizeSlurmDBTRES(record: SlurmDBTRESRecord): SlurmDBTRES {
     return {
-        ...(optionalString(record.type) !== undefined ? { type: record.type } : {}),
-        ...(optionalString(record.name) !== undefined ? { name: record.name } : {}),
-        ...(optionalNumber(record.id) !== undefined ? { id: record.id } : {}),
-        ...(optionalNumber(record.billing_weight) !== undefined ? { billingWeight: record.billing_weight } : {}),
+        ...(record.type !== undefined ? { type: record.type } : {}),
+        ...(record.name !== undefined ? { name: record.name } : {}),
+        ...(record.id !== undefined ? { id: record.id } : {}),
+        ...(record.billing_weight !== undefined ? { billingWeight: record.billing_weight } : {}),
     };
 }
 
 export function normalizeSlurmDBSnapshot(record: SlurmDBSnapshotRecord): SlurmDBSnapshot {
     return {
         schemaVersion: record.schema_version,
-        ...(optionalString(record.collected_at) !== undefined ? { collectedAt: record.collected_at } : {}),
+        ...(record.collected_at !== undefined ? { collectedAt: record.collected_at } : {}),
         clusters: (record.clusters ?? []).map(normalizeSlurmDBCluster),
         accounts: (record.accounts ?? []).map(normalizeSlurmDBAccount),
         users: (record.users ?? []).map(normalizeSlurmDBUser),
@@ -375,7 +374,7 @@ export function normalizeSlurmDBRecordsResource<TRecord, TModel>(
 ): SlurmDBRecordsResource<TModel> {
     return {
         schemaVersion: record.schema_version,
-        ...(optionalString(record.collected_at) !== undefined ? { collectedAt: record.collected_at } : {}),
+        ...(record.collected_at !== undefined ? { collectedAt: record.collected_at } : {}),
         records: (record.records ?? []).map(normalizeRecord),
         partial: record.partial ?? record.meta?.partial ?? false,
         errors: stringArray(record.errors ?? record.meta?.errors),

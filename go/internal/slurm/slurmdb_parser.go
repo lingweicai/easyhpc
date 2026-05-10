@@ -83,6 +83,10 @@ func runSacctMgrList(profile SlurmDBCommandProfile) ([]string, error) {
 
 func parseSlurmDBText(value string) string {
 	v := strings.TrimSpace(value)
+	// sacctmgr commonly renders unset values as empty strings, "(null)", or
+	// textual placeholders such as "n/a"/"none" depending on object type and
+	// Slurm version. Collapse those variants so older/newer releases normalize
+	// to the same bridge payload.
 	switch strings.ToLower(v) {
 	case "", "(null)", "n/a", "none", "null":
 		return ""
@@ -193,9 +197,9 @@ func MapSlurmDBUserRecord(fields []string) SlurmDBUser {
 // the canonical bridge/frontend model.
 func MapSlurmDBAssociationRecord(fields []string) SlurmDBAssociation {
 	defaultQOS := parseSlurmDBText(slurmDBField(fields, 5))
-	isDefault := defaultQOS != ""
+	hasDefaultQOS := defaultQOS != ""
 	qosList := parseSlurmDBList(slurmDBField(fields, 18))
-	if isDefault && defaultQOS != "" {
+	if hasDefaultQOS && defaultQOS != "" {
 		found := false
 		for _, qos := range qosList {
 			if qos == defaultQOS {
@@ -214,7 +218,7 @@ func MapSlurmDBAssociationRecord(fields []string) SlurmDBAssociation {
 		Account:           parseSlurmDBText(slurmDBField(fields, 2)),
 		User:              parseSlurmDBText(slurmDBField(fields, 3)),
 		Partition:         parseSlurmDBText(slurmDBField(fields, 4)),
-		IsDefault:         isDefault,
+		IsDefault:         hasDefaultQOS,
 		ParentID:          parseSlurmDBInt64(slurmDBField(fields, 6)),
 		MaxJobs:           parseSlurmDBInt64(slurmDBField(fields, 7)),
 		MaxSubmitJobs:     parseSlurmDBInt64(slurmDBField(fields, 8)),

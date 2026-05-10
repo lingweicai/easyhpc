@@ -2,10 +2,12 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
+import { fileURLToPath } from 'node:url';
 import ts from 'typescript';
 
 async function loadSlurmDBModule() {
-    const filePath = path.resolve('/home/runner/work/easyhpc/easyhpc/src/slurm/slurmdb.ts');
+    const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+    const filePath = path.join(rootDir, 'src/slurm/slurmdb.ts');
     const source = fs.readFileSync(filePath, 'utf8');
     const transpiled = ts.transpileModule(source, {
         compilerOptions: {
@@ -113,4 +115,3 @@ test('normalizeSlurmDBRecordsResource normalizes targeted records envelopes', as
     assert.deepEqual(resource.records[0].flags, ['relative']);
     assert.equal(resource.meta.commandProfiles.accounts.object, 'account');
 });
-
