@@ -12,7 +12,7 @@ func TestNewCacheIsEmpty(t *testing.T) {
 	c := slurm.NewCache()
 	snap := c.Get()
 
-	resources := []string{"clusters", "partitions", "nodes", "jobs", "reservations", "users", "accounts"}
+	resources := []string{"clusters", "partitions", "nodes", "jobs", "reservations", "users", "accounts", "slurmdb"}
 	for _, r := range resources {
 		v, ok := snap[r]
 		if !ok {
@@ -58,6 +58,14 @@ func TestGetResourceReturnsCorrectType(t *testing.T) {
 		{"reservations", false},
 		{"users", false},
 		{"accounts", false},
+		{"slurmdb", false},
+		{"slurmdb_clusters", false},
+		{"slurmdb_accounts", false},
+		{"slurmdb_users", false},
+		{"slurmdb_associations", false},
+		{"slurmdb_qos", false},
+		{"slurmdb_wckeys", false},
+		{"slurmdb_tres", false},
 		{"slurm_logs", false},
 		{"events", false},
 		{"unknown", true},

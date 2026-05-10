@@ -34,6 +34,7 @@ func NewCache() *CacheManager {
 			Reservations: []Reservation{},
 			Users:        []User{},
 			Accounts:     []Account{},
+			SlurmDB:      newEmptySlurmDBSnapshot(),
 			SlurmLogs:    []SlurmLog{},
 			Events:       []Event{},
 		},
@@ -44,13 +45,14 @@ func NewCache() *CacheManager {
 // It returns the first error encountered but still stores whatever data
 // could be collected.
 func (c *CacheManager) Refresh() error {
-	clusters, errC := getClusters()
 	nodes, errN := getNodes()
 	partitions, errP := getPartitions()
 	jobs, errJ := getJobs()
 	reservations, errR := getReservations()
-	users, errU := getUsers()
-	accounts, errA := getAccounts()
+	slurmdb, errDB := getSlurmDBSnapshot()
+	clusters := legacyClustersFromSlurmDB(slurmdb.Clusters)
+	users := legacyUsersFromSlurmDB(slurmdb.Users)
+	accounts := legacyAccountsFromSlurmDB(slurmdb.Accounts)
 
 	c.mu.Lock()
 	c.cache.Clusters = clusters
@@ -60,10 +62,11 @@ func (c *CacheManager) Refresh() error {
 	c.cache.Reservations = reservations
 	c.cache.Users = users
 	c.cache.Accounts = accounts
+	c.cache.SlurmDB = slurmdb
 	c.cache.LastUpdated = time.Now()
 	c.mu.Unlock()
 
-	for _, err := range []error{errC, errN, errP, errJ, errR, errU, errA} {
+	for _, err := range []error{errN, errP, errJ, errR, errDB} {
 		if err != nil {
 			return err
 		}
@@ -84,6 +87,7 @@ func (c *CacheManager) Get() map[string]interface{} {
 		"reservations": c.cache.Reservations,
 		"users":        c.cache.Users,
 		"accounts":     c.cache.Accounts,
+		"slurmdb":      c.cache.SlurmDB,
 		"slurm_logs":   c.cache.SlurmLogs,
 		"events":       c.cache.Events,
 	}
@@ -110,6 +114,22 @@ func (c *CacheManager) GetResource(resource string) interface{} {
 		return c.cache.Users
 	case "accounts":
 		return c.cache.Accounts
+	case "slurmdb":
+		return c.cache.SlurmDB
+	case "slurmdb_clusters":
+		return newSlurmDBRecordsResource(c.cache.SlurmDB, c.cache.SlurmDB.Clusters)
+	case "slurmdb_accounts":
+		return newSlurmDBRecordsResource(c.cache.SlurmDB, c.cache.SlurmDB.Accounts)
+	case "slurmdb_users":
+		return newSlurmDBRecordsResource(c.cache.SlurmDB, c.cache.SlurmDB.Users)
+	case "slurmdb_associations":
+		return newSlurmDBRecordsResource(c.cache.SlurmDB, c.cache.SlurmDB.Associations)
+	case "slurmdb_qos":
+		return newSlurmDBRecordsResource(c.cache.SlurmDB, c.cache.SlurmDB.QOS)
+	case "slurmdb_wckeys":
+		return newSlurmDBRecordsResource(c.cache.SlurmDB, c.cache.SlurmDB.Wckeys)
+	case "slurmdb_tres":
+		return newSlurmDBRecordsResource(c.cache.SlurmDB, c.cache.SlurmDB.TRES)
 	case "slurm_logs":
 		return c.cache.SlurmLogs
 	case "events":
