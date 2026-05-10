@@ -343,6 +343,7 @@ type Cache struct {
 	Reservations []Reservation
 	Users        []User
 	Accounts     []Account
+	SlurmDB      SlurmDBSnapshot
 	SlurmLogs    []SlurmLog
 	Events       []Event
 	LastUpdated  time.Time
